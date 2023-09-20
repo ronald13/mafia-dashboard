@@ -1,7 +1,7 @@
 
 template = 'plotly_dark'
 marker_color = ['#C0D8C0', '#F5EEDC', '#DD4A48', '#ECB390']
-marker_color_full = ['#C0D8C0', '#F5EEDC', '#DD4A48', '#ECB390', '#05668D', '#4B5842', '#387780']
+marker_color_full = ['#C0D8C0', '#F5EEDC', '#DD4A48', '#ECB390', '#05668D', '#4B5842', '#387780', '#443742']
 
 color_list = [[''],
         ['#C0D8C0'],

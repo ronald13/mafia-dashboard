@@ -1,0 +1,377 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+
+body{
+     /*background-color: #f1f0f0;*/
+     background-color: #282e38;
+     font-family: 'Roboto';
+
+}
+
+button:hover{
+    background:grey!Important;
+
+}
+button{
+    border-radius:5px!Important;
+}
+
+.points .plotly-customdata{
+    opacity:1!Important;
+}
+.overplot .xy3 .points{
+
+}
+.points .plotly-customdata:nth-child(1){
+    fill: rgb(225 255 255)!Important;
+    stroke: #646464!Important;
+    stroke-width: 3px!Important;
+}
+
+
+.btn{
+    font-size:12px;
+    display: inline-block;
+    background: #dedede;
+    /* color:#e0e0e0; */
+    text-align: center;
+    padding: 5px 15px;
+    margin-right: 15px;
+    margin-bottom: 15px;
+    border:2px solid #e0e0e0;
+}
+
+.btn-active{
+    font-size:12px;
+    display: inline-block;
+    background: #565656;
+    color:#fff;
+    text-align: center;
+    padding: 5px 15px;
+    margin-right: 15px;
+    margin-bottom: 15px;
+    border:2px solid #e0e0e0;
+    vertical-align: top;
+}
+
+
+.active{
+ background: #565656!Important;
+ border:2px solid #bebebe;
+ box-shadow:none!Important;
+ color:rgb(255, 255, 255);
+}
+
+/* hide arrow on barcharts(like hoverinfo) */
+.nsewdrag, .drag{
+    /*display:none;*/
+}
+
+
+#YearSelector{
+    display:flex;
+    flex-wrap:nowrap;
+    border-radius: 16.8px;
+    background-color: #f3f2f2;
+}
+
+.dash-filter input[type='text']{
+    text-align:left!Important;;
+}
+#YearSelector input[type='radio']{
+    display:none;
+}
+
+.form-check{
+    padding-left:0;
+    margin-bottom:0;
+}
+.form-check-inline{
+    margin-right:0;
+}
+#YearSelector label{
+    position:relative;
+    padding: 7px 17px 8px 15px;
+    border-radius: 16.8px;
+    background-color: #f3f2f2;
+    min-width:105px;
+    font-family: 'Roboto';
+    font-size: 10.9px;
+    font-weight: 600;
+    color: #313844;
+    text-align:center;
+    user-select:none;
+    cursor:pointer;
+}
+
+#YearSelector input[type='radio']:checked + label{
+   background-color: #f99746;
+   color: #fff;
+   z-index:100;
+}
+
+.indicatorlayer .trace {
+
+
+}
+
+#ringle{
+  width: 767px;
+  height: 740px;
+  background-color: #cee1f2;
+  position:absolute;
+  top:-180px;
+  left:-240px;
+  z-index:-2;
+  border-radius:50%;
+
+}
+.date-group-labels-checked{
+    background-color: #0D4667;
+    font-weight:bold;
+}
+
+.column-actions{
+    margin-right:5px;
+}
+
+
+
+
+.xtick text{
+    display:inline-flex!Important;
+}
+
+.crisp{
+ display:inline-flex!Important;
+}
+
+
+
+@media (max-width: 1000px) {
+        #_dash-app-content{
+            flex-direction:column;
+        }
+
+ }
+
+ @media screen and (max-width: 900px) {
+  .app__wrapper{
+    flex-direction:column;
+  }
+  #YearSelector label{
+  min-width: 70px;
+  }
+  .header__text{
+    width:100%!Important;
+    font-family: 'Roboto';
+  }
+  .footer{
+    flex-direction:column!Important;
+    align-items:center;
+    width:100%;
+  }
+  .footer p{
+    margin:10px 0!Important;
+    text-align:center;
+
+  }
+
+  label{
+    min-width:0;
+  }
+
+}
+
+.rc-slider-handle{
+    border: solid 2px #0D4667;
+}
+
+.rc-slider-handle:hover{
+    border-color: #0D4667;
+}
+
+.rc-slider-dot-active{
+    border-color: #0D4667;
+}
+
+.rc-slider-track-1{
+    background-color: #0D4667;
+}
+
+.rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-dragging{
+    border-color: #0D4667;
+    box-shadow: 0 0 0 5px #0e6394;
+}
+
+
+.dash-filter--case--sensitive{
+    display:none;
+}
+
+
+.square {
+    width:150px;
+    height:150px;
+    display: flex;
+    flex-direction:column;
+    justify-content: flex-start;
+    align-items:center;
+    padding: 16px 20px 21px 20px;
+    border-radius: 15px;
+    background-color: #313844;
+    color:#f7f7f7;
+    margin-bottom:20px;
+
+}
+
+.pearson_team{
+    font-size: 12px;
+    color: #757575;
+    margin-bottom: 0;
+}
+
+.pearson_team_add{
+    font-size: 14px;
+    color: #757575;
+    margin-bottom: 0;
+    margin-left:10px;
+}
+
+.name_team{
+    font-size: 14px;
+    font-weight:bold;
+    color: #f7f7f7;
+    margin-bottom: 0;
+}
+
+.indicator{
+    line-height: 1.1;
+    letter-spacing: -0.81px;
+    color: #f99746;
+    font-family: 'Roboto Slab';
+    font-size: 42px;
+    font-weight: bold;
+    margin: 0 0 20px 0;
+    text-transform: uppercase;
+}
+.title{
+    font-family: 'Roboto';
+    font-size: 14px;
+    font-weight: 600;
+    color: #f7f7f7;
+    text-align: center;
+    margin-bottom: 5px;
+}
+.rectangle{
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 16px 31px 21px 36px;
+    border-radius: 15px;
+    background-color: #313844;
+    margin-bottom: 20px;
+}
+.vrectangle{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 16px 31px 21px 36px;
+    border-radius: 15px;
+    background-color: #313844;
+    margin-bottom: 20px;
+}
+.relative{
+    position: relative;
+}
+
+
+.link{
+    font-family: 'Roboto';
+    font-size: 12px;
+    margin-right: 10px;
+    text-decoration: none;
+    color: white;
+}
+
+.main-svg{
+    background:none!Important
+}
+
+.bg{
+  fill:transparent!Important;
+}
+.Select-control{
+    background-color: transparent!Important;
+    border: 1px solid #f7f7f7!Important;
+}
+.Select--multi  .Select-value-label{
+    color: #f7f7f7!Important;
+    border: 1px solid #f7f7f7!Important;
+}
+.Select--multi .Select-value{
+    margin-bottom:5px;
+    background-color:#757575!Important;
+}
+.Select--multi .Select-value-icon{
+    border: 1px solid #f7f7f7!Important;
+    color: #f7f7f7!Important;
+}
+
+.Select-value-label{
+    color: #f7f7f7!Important;
+}
+
+.plotbg path{
+    fill:transparent!Important;
+}
+
+.radial-grid .xgrid{
+    stroke:rgb(117,117,117)!Important;
+    stroke-width:2px!Important;
+}
+.angular-line path{
+    stroke:transparent!Important;
+}
+
+.angularaxisgrid,
+.radial-line line{
+    stroke:transparent!Important;
+}
+
+.angularaxistick text{
+    fill:rgb(117,117,117)!Important;
+    font-weight:bold;
+}
+
+.gtitle{
+    font-weight: bold!Important;
+}
+
+.radial-axis .xtick:last-child{
+    display:none;
+}
+
+.ytick text{
+    fill:#fff!Important;
+}
+
+#TypeRefereeChart input{
+    margin-right:5px!Important;
+}
+
+.polar .radial-axis{
+    display: none;
+}
+.spider_plot{
+    min-width: 250px;
+}
+@media (max-width:600px){
+    .spider_plot{
+        width:100%;
+        min-width: auto;
+    }
+
+
+}
