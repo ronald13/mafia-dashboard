@@ -2,17 +2,13 @@ version: '3.8'
 
 services:
   dashboard:
-    image: wawadashboard:latest
+    image: dashboard:latest
     build:
       context: .
       dockerfile: Dockerfile
-    env_file:
-      - ./.env
     volumes:
       - ./:/app/
-    networks:
-      wawadevdbbridge:
     entrypoint: ./entrypoint.sh
     restart: unless-stopped
     ports:
-      - "18837:8054"
+      - "18838:8053"

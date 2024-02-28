@@ -1,0 +1,27 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    name: Deploy main branch on push.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync remote repository
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USERNAME }}
+          password: ${{ secrets.PROD_SSH_PASSWORD }}
+          port: ${{ secrets.PROD_SSH_PORT }}
+          script: cd mafia-dashboard; git pull
+      - name: Rebuild docker containers
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USERNAME }}
+          password: ${{ secrets.PROD_SSH_PASSWORD }}
+          port: ${{ secrets.PROD_SSH_PORT }}
+          script: cd mafia-dashboard;
