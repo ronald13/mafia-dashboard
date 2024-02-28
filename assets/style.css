@@ -7,6 +7,9 @@ body{
      font-family: 'Roboto';
 
 }
+p{
+    margin-bottom: 0;
+}
 
 button:hover{
     background:grey!Important;
@@ -373,5 +376,50 @@ button{
         min-width: auto;
     }
 
+
+}
+.Select-menu-outer{
+    background-color: #282e38;
+    color:#fff;
+}
+
+.flex-row{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+    flex-basis: 33.33%;
+}
+.input_style{
+    background-color:  #282e38;
+    color:#fff;
+    width: 50px;
+    text-align: center;
+}
+
+.button_style{
+    background: transparent;
+    color: #fff;
+    border-style: solid;
+    padding: 5px 15px;
+    width: 200px;
+    margin: 10px 0;
+}
+
+._container{
+    padding: 20px 15%;
+}
+
+.generate_button{
+    background-color: white;
+    border-radius: 6px;
+    padding: 5px 20px;
+    text-transform: uppercase;
+    transition:all ease 0.3ms;
+    border-style: none;
+    font-weight: 500;
+    font-size: 12px;
+    margin: 20px 0 10px 0;
 
 }

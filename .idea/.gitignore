@@ -1,0 +1,12 @@
+*.pyc
+../.idea/
+./idea
+build/
+logs/
+*.log
+*env/
+project.egg-info/
+wawa-dashboard/.env
+
+.venv/
+.env
