@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  dashboard:
+    image: dashboard:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app/
+    entrypoint: ./entrypoint.sh
+    restart: unless-stopped
+    ports:
+      - "8053:8053"
+

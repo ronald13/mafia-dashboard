@@ -15,6 +15,9 @@ import json
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
+here = os.path.abspath(os.path.dirname(__file__))
+prefix = os.environ.get("DASH_PREFIX", "/mafia_dashboard/")
+
 WINNER_ORDER = (1, 0, 2)
 PLAYERS_IN_TEAM = 4
 color_schemes = ['rgb(243,243,243)', 'rgb(206,217,216)', 'rgb(152,171,184)', 'rgb(125,148,163)', 'rgb(93,114,125)',
@@ -58,7 +61,13 @@ kchb_by_years = {2023: Mafia(*get_data(2023, GAME_NUMBER)), 2022: Mafia(*get_dat
                  }
 
 app = Dash(
-    __name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+    __name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
+    url_base_pathname=prefix,
+    meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
+    assets_folder=os.path.join(here, "assets")
+
+)
+
 app.title = "КЧБ | Dashboard"
 server = app.server
 
@@ -569,4 +578,4 @@ app.layout = html.Div([
 # don't run when imported, only when standalone
 if __name__ == '__main__':
     port = os.getenv("DASH_PORT", 8053)
-    app.run_server(debug=True,  port=port)
+    app.run_server(debug=True, port=port, host="0.0.0.0")
