@@ -24,4 +24,4 @@ jobs:
           username: ${{ secrets.PROD_SSH_USERNAME }}
           password: ${{ secrets.PROD_SSH_PASSWORD }}
           port: ${{ secrets.PROD_SSH_PORT }}
-          script: cd mafia-dashboard;
+          script: cd mafia-dashboard; docker compose -f docker-compose-main.yml -p up -d --build
