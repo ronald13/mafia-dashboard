@@ -470,7 +470,7 @@ app.layout = html.Div([
                                     labelCheckedClassName="date-group-labels-checked",
                                     inline=True,
                                     value=2023,
-                                    style={'margin': '0 20px 20px 0'}
+                                    # style={'margin': '0 20px 20px 0'}
                                 ),
                         ], style={'display': 'flex', 'flex-wrap':'wrap'}),
 

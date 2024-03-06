@@ -285,6 +285,16 @@ button{
     background-color: #313844;
     margin-bottom: 20px;
 }
+
+@media (max-width: 450px) {
+    .vrectangle{
+       padding: 8px 5px;
+    }
+    #YearSelector label{
+        min-width: 60px;
+    }
+}
+
 .relative{
     position: relative;
 }
