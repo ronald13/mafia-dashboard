@@ -293,6 +293,9 @@ button{
     #YearSelector label{
         min-width: 60px;
     }
+    #spider_layout .spider_plot{
+       flex-basis: 100%!important;
+    }
 }
 
 .relative{

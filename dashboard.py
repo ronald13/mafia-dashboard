@@ -16,7 +16,7 @@ import json
 pd.options.mode.chained_assignment = None  # default='warn'
 
 here = os.path.abspath(os.path.dirname(__file__))
-prefix = os.environ.get("DASH_PREFIX", "/mafia_dashboard/")
+prefix = os.environ.get("DASH_PREFIX", "/")
 
 WINNER_ORDER = (1, 0, 2)
 PLAYERS_IN_TEAM = 4
@@ -285,7 +285,7 @@ def update_graph(team, year):
                           config={'displayModeBar': False},
                           style={'marginTop': '-80px'}
                           )
-            ], style={'flex-basis': '25%',})
+            ], className="spider_plot", style={'flex-basis': '25%',})
             for counter in range(0, PLAYERS_IN_TEAM)
 
 
@@ -305,7 +305,6 @@ def update_graph(team_list, year):
         return
     rounds = ['Тур ' + str(x) for x in range(1, GAME_NUMBER + 1)]
     df_Active = kchb.win_by_round()
-    print(df_Active)
     df_Active = df_Active[df_Active['team_name'].isin(team_list)].sort_values(by=[df_Active.columns[-1]], ascending=True).reset_index(drop=True)
 
     fig = go.Figure()
@@ -564,11 +563,15 @@ app.layout = html.Div([
                     ),
             ], style={'display': 'flex', 'justify-content': 'space-between', 'width': '100%', 'flex-wrap':'wrap'}),
             dcc.Graph(id='tornado_graph',  config={'displayModeBar': False}, style={'max-width': '100%', 'width': '100%'}),
+
+        ], className='vrectangle'),
+        html.Div([
             html.Div([
                 html.Img(src='assets/img/logo_white.png', style={'width': '80px'}),
                 html.P('© 2018 ШIFFER Inc. Информация для забавы', style={'font-size':'15px', 'color': '#fff', 'margin':'0 10px'}),
                 html.A("Перейти на сайт", href='https://statistics.shiffer.by/#/Turnir/41', target="_blank", className='link'),
-            ], style={'margin-top': '30px', 'display': 'flex', 'flex-direction': 'row', 'align-items': 'center', 'font-size': '15px', 'text-decoration': 'underline' }, className='footer')
+            ], style={'margin-top': '10px', 'display': 'flex', 'flex-direction': 'row', 'align-items': 'center', 'font-size': '15px', 'text-decoration': 'underline' }, className='footer')
+
         ], className='vrectangle')
 
     ], style={'display': 'flex', 'flex-direction': 'column', 'padding': '10px 20px', 'flex-basis':'75%'}),
