@@ -172,8 +172,7 @@ class Mafia(object):
         """
         get a table with information about the winnings of the team in the context of the round
         """
-        df_temp = self.get_info_about_all_games().groupby(['team_name', 'round_number'])[
-            'score', 'score_dop', 'score_minus'].sum().reset_index()
+        df_temp = self.get_info_about_all_games().groupby(['team_name', 'round_number'])[['score', 'score_dop', 'score_minus']].sum().reset_index()
         df_temp['cum_score'] = df_temp.groupby('team_name')['score'].cumsum()
         df_temp['cum_score_dop'] = df_temp.groupby('team_name')['score_dop'].cumsum()
         df_temp['cum_score_minus'] = df_temp.groupby('team_name')['score_minus'].cumsum()
