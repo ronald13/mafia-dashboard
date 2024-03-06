@@ -305,6 +305,7 @@ def update_graph(team_list, year):
         return
     rounds = ['Тур ' + str(x) for x in range(1, GAME_NUMBER + 1)]
     df_Active = kchb.win_by_round()
+    print(df_Active)
     df_Active = df_Active[df_Active['team_name'].isin(team_list)].sort_values(by=[df_Active.columns[-1]], ascending=True).reset_index(drop=True)
 
     fig = go.Figure()
