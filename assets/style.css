@@ -212,7 +212,11 @@ button{
     display:none;
 }
 
-
+.square__block{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
 .square {
     width:150px;
     height:150px;
@@ -224,8 +228,18 @@ button{
     border-radius: 15px;
     background-color: #313844;
     color:#f7f7f7;
-    margin-bottom:20px;
+}
+@media (max-width: 450px) {
+    .square {
+        width:120px;
+        height:120px;
+        padding: 10px 12px;
 
+    }
+    .indicator{
+        font-size: 32px!important;
+
+    }
 }
 
 .pearson_team{
@@ -291,7 +305,7 @@ button{
        padding: 8px 5px;
     }
     #YearSelector label{
-        min-width: 60px;
+        min-width: 55px;
     }
     #spider_layout .spider_plot{
        flex-basis: 100%!important;

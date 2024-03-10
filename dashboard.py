@@ -198,7 +198,7 @@ def update_graph(year):
                     for counter in range(0, len(best_score))
                 ], style={'text-align':'center'}),
             html.Div('тройка черных', style={'color': '#757575', 'font-size': '12px', 'margin-bottom': '0', }),
-        ], style={'margin-right': '20px', },
+        ], style={},
            className='square'),
 
 
@@ -353,6 +353,7 @@ def update_graph(team, year):
     df_Active = kchb.wind_by_round_referee()
     df_Active = df_Active[df_Active['team_name'] == team]
     referee = kchb.referee['referee_name'].to_list()
+
     for i, ref in zip(range(0, len(referee)), referee):
         fig.add_traces(
             go.Bar(name=ref, x=rounds, y=df_Active['win_list'].values[0][i], width=0.95,
@@ -479,28 +480,30 @@ app.layout = html.Div([
                     [
                         html.Div("Количество команд", className='title'),
                         html.Div(id='total_teams', className='indicator'),
-                    ], style={'margin-right': '20px'}, className='square'),
+                    ], style={}, className='square'),
 
                 html.Div(
                     [
                         html.Div("Сыграно игр", className='title', style={'margin-bottom':'25px'}),
                         html.Div(id='total_games', className='indicator'),
-                    ],  style={'margin-right': '20px', }, className='square'),
+                    ],  style={}, className='square'),
                 html.Div(
                     [
                         html.Div("Всего фолов", className='title', style={'margin-bottom': '25px'}),
                         html.Div('644', className='indicator'),
-                    ], style={'margin-right': '20px', }, className='square'),
+                    ], style={}, className='square'),
                 html.Div(
                     [
                         html.Div("Победы", className='title'),
                         html.Div([
                             dcc.Graph(id='win_lose',  config={'displayModeBar': False}, style={}),
                         ]),
-                    ], style={'margin-right': '20px', }, className='square'),
+                    ], style={}, className='square'),
                 html.Div(id='best_score'),
                 html.Div(id='most_killed')
-        ], style={'display': 'flex', 'margin-bottom': '20px', 'flex-wrap': 'wrap'}),
+        ], style={'margin-bottom': '20px'},
+        className='square__block'
+        ),
 
         html.Div([
             html.P('Движение по играм', className='title'),
@@ -511,7 +514,7 @@ app.layout = html.Div([
                         id='round_win_multi_dropdown',
                         options=[],
                         multi=True,
-                    )], style={'width':'100%'}),
+                    )], style={'width':'100%',  'margin-bottom': '20px'}),
             dcc.Graph(id='total_win',
                       config={'displayModeBar': False},
                       style={'max-width': '100%', 'width': '100%'}),
