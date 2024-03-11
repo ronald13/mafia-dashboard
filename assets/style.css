@@ -71,7 +71,8 @@ button{
 }
 
 
-#YearSelector{
+#YearSelector,
+#YearSelector-mobile{
     display:flex;
     flex-wrap:nowrap;
     border-radius: 16.8px;
@@ -81,7 +82,8 @@ button{
 .dash-filter input[type='text']{
     text-align:left!Important;;
 }
-#YearSelector input[type='radio']{
+#YearSelector input[type='radio'],
+#YearSelector-mobile input[type='radio']{
     display:none;
 }
 
@@ -92,7 +94,8 @@ button{
 .form-check-inline{
     margin-right:0;
 }
-#YearSelector label{
+#YearSelector label,
+#YearSelector-mobile label{
     position:relative;
     padding: 7px 17px 8px 15px;
     border-radius: 16.8px;
@@ -107,10 +110,15 @@ button{
     cursor:pointer;
 }
 
-#YearSelector input[type='radio']:checked + label{
+#YearSelector input[type='radio']:checked + label,
+#YearSelector-mobile  input[type='radio']:checked + label{
    background-color: #f99746;
    color: #fff;
    z-index:100;
+}
+
+.year__selector-mobile{
+    display:none;
 }
 
 .indicatorlayer .trace {
@@ -162,7 +170,8 @@ button{
   .app__wrapper{
     flex-direction:column;
   }
-  #YearSelector label{
+  #YearSelector label,
+  #YearSelector-mobile label{
   min-width: 70px;
   }
   .header__text{
@@ -231,14 +240,22 @@ button{
 }
 @media (max-width: 450px) {
     .square {
-        width:120px;
-        height:120px;
+        width:100px;
+        height:100px;
         padding: 10px 12px;
 
     }
+    .square .title{
+        margin-bottom: 10px!important;
+        font-size: 12px;
+        min-height: 30px;
+    }
     .indicator{
-        font-size: 32px!important;
+        font-size: 28px!important;
 
+    }
+    #most_killed-mobile .indicator{
+        font-size: 18px!important;
     }
 }
 
@@ -302,13 +319,20 @@ button{
 
 @media (max-width: 450px) {
     .vrectangle{
-       padding: 8px 5px;
+       padding: 8px 10px;
     }
-    #YearSelector label{
+    #YearSelector label,
+    #YearSelector-mobile label{
         min-width: 55px;
     }
     #spider_layout .spider_plot{
        flex-basis: 100%!important;
+    }
+    .year__selector-mobile{
+        display:block;
+    }
+    .year__selector-desktop{
+        display:none;
     }
 }
 
@@ -449,4 +473,43 @@ button{
     font-size: 12px;
     margin: 20px 0 10px 0;
 
+}
+.header__title { grid-area: header__title; }
+.team_awards { grid-area: team_awards; }
+.player_awards { grid-area: player_awards; }
+.year_selector { grid-area: year_selector; }
+.square__block { grid-area: square__block; }
+.game_direction { grid-area: game_direction; }
+.heatmap { grid-area: heatmap; }
+.compare_teams { grid-area: compare_teams; }
+.referee__block { grid-area: referee__block; }
+.additional_awards { grid-area: additional_awards; }
+.chart_area { grid-area: chart_area; }
+
+.app__wrapper__grid {
+  display: grid;
+  grid-template-columns: 25% 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: 0.2fr 0.2fr 0.5fr 0.5fr 0.6fr 1fr;
+  gap: 20px 20px;
+  grid-template-areas:
+    "header__title year_selector year_selector year_selector year_selector year_selector"
+    "header__title square__block square__block square__block square__block square__block"
+    "team_awards chart_area chart_area chart_area chart_area chart_area"
+    "player_awards chart_area chart_area chart_area chart_area chart_area"
+    "additional_awards chart_area chart_area chart_area chart_area chart_area"
+    "referee__block chart_area chart_area chart_area chart_area chart_area";
+}
+
+.chart_area {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 0px 0px;
+  grid-template-areas:
+    "game_direction game_direction game_direction"
+    "heatmap heatmap heatmap"
+    "tournament_seating tournament_seating tournament_seating"
+    "compare_teams compare_teams compare_teams";
+    "footer footer footer";
+  grid-area: chart_area;
 }

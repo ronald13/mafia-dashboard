@@ -177,7 +177,15 @@ def update_graph(year):
      Output('total_games', 'children'),
      Output('win_lose', 'figure'),
      Output('best_score', 'children'),
-     Output('most_killed', 'children')],
+     Output('most_killed', 'children'),
+     Output('total_teams-mobile', 'children'),
+     Output('total_games-mobile', 'children'),
+     Output('win_lose-mobile', 'figure'),
+     Output('best_score-mobile', 'children'),
+     Output('most_killed-mobile', 'children')
+
+
+     ],
      Input('YearSelector', 'value')
 )
 def update_graph(year):
@@ -209,7 +217,8 @@ def update_graph(year):
             html.Div(most_killed[1], style={'color': '#757575', 'font-size': '12px', 'margin-bottom': '0', }),
         ], style={'margin-right': '20px', }, className='square'),
 
-    return total_teams, total_games, win_lose_figure, best_score_layout,  most_killed_layout
+    return (total_teams, total_games, win_lose_figure, best_score_layout,  most_killed_layout,
+           total_teams, total_games, win_lose_figure, best_score_layout, most_killed_layout)
 
 # REFEREE PART
 @app.callback(
@@ -406,6 +415,57 @@ app.layout = html.Div([
                style={'width': '350px', 'font-size': '14px', 'margin-bottom':'10px', 'font-weight':'bold', 'color':'#757575'}, className='header__text'),
 
         html.Div([
+            html.Div([
+                html.P('Турнирная статистика за года', className='title'),
+                html.Div([
+                    dbc.RadioItems(
+                        id="YearSelector-mobile",
+                        options=[{'label': '2023', 'value': 2023},
+                                 {'label': '2022', 'value': 2022},
+                                 {'label': '2021', 'value': 2021},
+                                 {'label': '2020', 'value': 2020},
+                                 {'label': '2019', 'value': 2019},
+                                 {'label': '2018', 'value': 2018},
+                                 ],
+                        labelClassName="date-group-labels",
+                        labelCheckedClassName="date-group-labels-checked",
+                        inline=True,
+                        value=2023,
+                        # style={'margin': '0 20px 20px 0'}
+                    ),
+                ], style={'display': 'flex', 'flex-wrap': 'wrap'}),
+
+            ], className='vrectangle'),
+            html.Div([
+                html.Div(
+                    [
+                        html.Div("Количество команд", className='title'),
+                        html.Div(id='total_teams-mobile', className='indicator'),
+                    ], style={}, className='square'),
+
+                html.Div(
+                    [
+                        html.Div("Сыграно игр", className='title', style={'margin-bottom': '25px'}),
+                        html.Div(id='total_games-mobile', className='indicator'),
+                    ], style={}, className='square'),
+                html.Div(
+                    [
+                        html.Div("Всего фолов", className='title', style={'margin-bottom': '25px'}),
+                        html.Div('644', className='indicator'),
+                    ], style={}, className='square'),
+                html.Div(
+                    [
+                        html.Div("Победы", className='title'),
+                        html.Div([
+                            dcc.Graph(id='win_lose-mobile', config={'displayModeBar': False}, style={}),
+                        ]),
+                    ], style={}, className='square'),
+                html.Div(id='best_score-mobile'),
+                html.Div(id='most_killed-mobile')
+            ], style={'margin-bottom': '20px'}, className='square__block'),
+        ], className='year__selector-mobile'),
+
+        html.Div([
             html.Div("Призеры турнира", className='title'),
             html.Div(id='top_winner', style={'display': 'flex', 'width':'100%'})
 
@@ -455,55 +515,56 @@ app.layout = html.Div([
 
     html.Div([
         html.Div([
-                html.P('Турнирная статистика за года', className='title'),
-                html.Div([
-                            dbc.RadioItems(
-                                    id="YearSelector",
-                                    options=[{'label': '2023', 'value':2023},
-                                             {'label': '2022', 'value':2022},
-                                             {'label': '2021', 'value':2021},
-                                             {'label': '2020', 'value':2020},
-                                             {'label': '2019', 'value':2019},
-                                             {'label': '2018', 'value':2018},
-                                             ],
-                                    labelClassName="date-group-labels",
-                                    labelCheckedClassName="date-group-labels-checked",
-                                    inline=True,
-                                    value=2023,
-                                    # style={'margin': '0 20px 20px 0'}
-                                ),
-                        ], style={'display': 'flex', 'flex-wrap':'wrap'}),
+            html.Div([
+                    html.P('Турнирная статистика за года', className='title'),
+                    html.Div([
+                                dbc.RadioItems(
+                                        id="YearSelector",
+                                        options=[{'label': '2023', 'value':2023},
+                                                 {'label': '2022', 'value':2022},
+                                                 {'label': '2021', 'value':2021},
+                                                 {'label': '2020', 'value':2020},
+                                                 {'label': '2019', 'value':2019},
+                                                 {'label': '2018', 'value':2018},
+                                                 ],
+                                        labelClassName="date-group-labels",
+                                        labelCheckedClassName="date-group-labels-checked",
+                                        inline=True,
+                                        value=2023,
+                                        # style={'margin': '0 20px 20px 0'}
+                                    ),
+                            ], style={'display': 'flex', 'flex-wrap':'wrap'}),
 
-                    ],  className='vrectangle'),
-        html.Div([
-                html.Div(
-                    [
-                        html.Div("Количество команд", className='title'),
-                        html.Div(id='total_teams', className='indicator'),
-                    ], style={}, className='square'),
+                        ],  className='vrectangle'),
+            html.Div([
+                    html.Div(
+                        [
+                            html.Div("Количество команд", className='title'),
+                            html.Div(id='total_teams', className='indicator'),
+                        ], style={}, className='square'),
 
-                html.Div(
-                    [
-                        html.Div("Сыграно игр", className='title', style={'margin-bottom':'25px'}),
-                        html.Div(id='total_games', className='indicator'),
-                    ],  style={}, className='square'),
-                html.Div(
-                    [
-                        html.Div("Всего фолов", className='title', style={'margin-bottom': '25px'}),
-                        html.Div('644', className='indicator'),
-                    ], style={}, className='square'),
-                html.Div(
-                    [
-                        html.Div("Победы", className='title'),
-                        html.Div([
-                            dcc.Graph(id='win_lose',  config={'displayModeBar': False}, style={}),
-                        ]),
-                    ], style={}, className='square'),
-                html.Div(id='best_score'),
-                html.Div(id='most_killed')
-        ], style={'margin-bottom': '20px'},
-        className='square__block'
-        ),
+                    html.Div(
+                        [
+                            html.Div("Сыграно игр", className='title', style={'margin-bottom':'25px'}),
+                            html.Div(id='total_games', className='indicator'),
+                        ],  style={}, className='square'),
+                    html.Div(
+                        [
+                            html.Div("Всего фолов", className='title', style={'margin-bottom': '25px'}),
+                            html.Div('644', className='indicator'),
+                        ], style={}, className='square'),
+                    html.Div(
+                        [
+                            html.Div("Победы", className='title'),
+                            html.Div([
+                                dcc.Graph(id='win_lose',  config={'displayModeBar': False}, style={}),
+                            ]),
+                        ], style={}, className='square'),
+                    html.Div(id='best_score'),
+                    html.Div(id='most_killed')
+            ], style={'margin-bottom': '20px'},className='square__block'),
+        ], className='year__selector-desktop'),
+
 
         html.Div([
             html.P('Движение по играм', className='title'),
