@@ -6,3 +6,4 @@ numpy==1.26.4
 pandas==2.2.0
 plotly==5.16.1
 Requests==2.31.0
+seaborn==0.13.2

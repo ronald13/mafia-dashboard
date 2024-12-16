@@ -1,9 +1,12 @@
 import os
 import pandas as pd
+import numpy as np
 import json
 from dash import Dash, dcc, html, Input, Output, callback_context
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
+import plotly.express as px
+import plotly.figure_factory as ff
 from plotly.subplots import make_subplots
 from prep import create_tornado, simple_bar, stacked_bar, simple_pie, draw_pie, make_spider, text_fig, create_box_bars
 from styling import template, marker_color, marker_color_full, color_list
@@ -11,6 +14,7 @@ from solver import Mafia, merge_two_dicts
 from pathlib import Path
 from loguru import logger
 import json
+import seaborn as sns
 
 
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -55,7 +59,8 @@ def get_data(year, games_number=GAME_NUMBER):
 
 
 
-kchb_by_years = {2023: Mafia(*get_data(2023, GAME_NUMBER)), 2022: Mafia(*get_data(2022, GAME_NUMBER)),
+kchb_by_years = {2024: Mafia(*get_data(2024, GAME_NUMBER)),
+                 2023: Mafia(*get_data(2023, GAME_NUMBER)), 2022: Mafia(*get_data(2022, GAME_NUMBER)),
                  2021: Mafia(*get_data(2021, GAME_NUMBER)), 2020: Mafia(*get_data(2020, GAME_NUMBER)),
                  2019: Mafia(*get_data(2019, GAME_NUMBER)), 2018: Mafia(*get_data(2018, GAME_NUMBER))
                  }
@@ -78,7 +83,8 @@ server = app.server
      Output('round_win_referee_dropdown', 'options'),
      Output('table_setting_team_dropdown', 'options'),
      Output('tornado_team_dropdown_1', 'options'),
-     Output('tornado_team_dropdown_2', 'options')],
+     Output('tornado_team_dropdown_2', 'options'),
+     Output('heatmap_team_dropdown', 'options')],
      Input('YearSelector', 'value')
 )
 def update_dropdown_options(year):
@@ -87,34 +93,37 @@ def update_dropdown_options(year):
     #     return
     teams_list = kchb.teams_list()
     teams_list_options = [{'label': i, 'value': i} for i in teams_list]
-    return teams_list_options, teams_list_options, teams_list_options, teams_list_options, teams_list_options
+    return teams_list_options, teams_list_options, teams_list_options, teams_list_options, teams_list_options, teams_list_options
 
 @app.callback(
     [Output('round_win_multi_dropdown', 'value'),
      Output('round_win_referee_dropdown', 'value'),
      Output('table_setting_team_dropdown', 'value'),
      Output('tornado_team_dropdown_1', 'value'),
-     Output('tornado_team_dropdown_2', 'value')
+     Output('tornado_team_dropdown_2', 'value'),
+     Output('heatmap_team_dropdown', 'value')
      ],
     [Input('round_win_multi_dropdown', 'options'),
      Input('round_win_referee_dropdown', 'options'),
      Input('table_setting_team_dropdown', 'options'),
      Input('tornado_team_dropdown_1', 'options'),
-     Input('tornado_team_dropdown_2', 'options')
+     Input('tornado_team_dropdown_2', 'options'),
+     Input('heatmap_team_dropdown', 'options')
      ],
 )
 def update_dropdown_values(round_win_multi_dropdown,
                            round_win_referee_dropdown,
                            table_setting_team_dropdown,
                            tornado_team_dropdown_1,
-                           tornado_team_dropdown_2
+                           tornado_team_dropdown_2,
+                           heatmap_team_dropdown
                            ):
 
     teams_list_value = [k['value'] for k in round_win_referee_dropdown][0]
     teams_list_value_2 = [k['value'] for k in round_win_referee_dropdown][1]
     multi_team_list = [k['value'] for k in round_win_referee_dropdown][0:3]
     return (multi_team_list,
-            teams_list_value, teams_list_value, teams_list_value, teams_list_value_2
+            teams_list_value, teams_list_value, teams_list_value, teams_list_value_2, teams_list_value
             )
 
 # TEAM STATISTIC
@@ -344,7 +353,148 @@ def update_graph(team_list, year):
     fig.update_yaxes(title='<b>Победы</b>')
     return fig
 
+@app.callback(
+    Output('heatmap', 'figure'),
+    [Input('heatmap_team_dropdown', 'value'),
+     Input('YearSelector', 'value')]
+)
+def update_graph(team, year):
+    kchb = kchb_by_years.get(year)
+    if not kchb:
+        return
 
+    df_Active = kchb.position_tracking()
+
+    # rounds = ['Тур ' + str(x) for x in range(1, 14 + 1)]
+    # df_Active = kchb.wind_by_round_referee()
+    # df_Active = df_Active[df_Active['team_name'] == team]
+
+    def generate_colors(num_teams):
+        """
+        Генерирует цветовую палитру с яркими цветами для топ-3 и пастельными для остальных
+
+        Args:
+            num_teams (int): Общее количество команд
+
+        Returns:
+            list: Список цветов для графика
+        """
+        # Яркие цвета для топ-3
+        bright_colors = [
+            '#d4af37',  # Яркий красный
+            '#cccccc',  # Яркий зеленый
+            '#ff6600'  # Яркий синий
+        ]
+
+        # Создаем градиент пастельных цветов для остальных команд
+
+        # Если команд <= 3, используем только яркие цвета
+        if num_teams <= 3:
+            return bright_colors[:num_teams]
+
+        # Для большего числа команд добавляем пастельные цвета
+        return bright_colors + ['#757575'] * (num_teams - 3)
+
+    teams_number = len(kchb.teams_list())
+    colors = generate_colors(teams_number)
+    rounds = ['Тур ' + str(x) for x in range(1, 14 + 1)]
+    fig = go.Figure()
+
+    # Сортируем команды по их рангу в первом туре
+    team_order = df_Active[df_Active['round_number'] == 14].sort_values('rank')['team_name'].tolist()
+    team_order1 = df_Active[df_Active['round_number'] ==1].sort_values('rank')['team_name'].tolist()
+    top3_team = team_order[:3]
+
+    for i, team in enumerate(top3_team):
+        team_data = df_Active[df_Active['team_name'] == team]
+        print(team_data)
+        rank_data = team_data['rank']
+
+        fig.add_trace(go.Scatter(
+            x=team_data['round_number'],
+            y=team_data['rank'],
+            mode='lines+markers',
+            name=team,
+            line=dict(color=colors[i], width=5),
+            marker=dict(size=8),
+            text=[team] * len(team_data),
+            customdata=team_data['rank'].astype('str'),
+            hovertemplate='<b>%{text}</b><br>'
+                          '%{x} Тур - %{customdata} место' +
+                          '<extra></extra>',
+        ))
+
+    for i, team in enumerate(team_order[4:]):
+        team_data = df_Active[df_Active['team_name'] == team]
+
+        fig.add_trace(go.Scatter(
+            x=team_data['round_number'],
+            y=team_data['rank'],
+            mode='lines+markers',
+            name=team,
+            line=dict(color='#757575', width=5),
+            marker=dict(size=8),
+            text=[team] * len(team_data),
+            customdata=team_data['rank'].astype('str'),
+            hovertemplate='<b>%{text}</b><br>'
+                         '%{x} Тур - %{customdata} место' +
+                          '<extra></extra>',
+        ))
+
+
+
+    # Настройка макета с цветными метками
+    fig.update_layout(
+        autosize=True,
+        margin=dict(l=5, r=10, t=20, pad=8),
+        template=template,
+        showlegend=False,
+        xaxis_title='Номер тура',
+        # yaxis_title='Место в турнире',
+        yaxis=dict(
+            autorange='reversed',  # Инверсия оси Y
+            range=[teams_number, 1],  # Диапазон от 10 до 1 места
+            tickmode='array',
+            tickvals=list(range(1,teams_number + 1)),
+            ticktext=team_order1,  # Подписи команд
+            tickfont=dict(color='red')
+        ),
+        xaxis=dict(
+            range=[0.8, 15],
+            tickmode = 'array',
+            tickvals = list(range(1, 15)),
+            ticktext = rounds,
+
+        ),
+        height=600,
+    )
+
+    fig.add_annotation(
+        x=15,
+        y=1,
+        text="<b>1 место</b><br>",
+        showarrow=False,
+        xanchor="right",
+        font_color='#d4af37',
+    )
+    fig.add_annotation(
+        x=15,
+        y=2,
+        text="<b>2 место</b><br>",
+        showarrow=False,
+        xanchor="right",
+        font_color='#cccccc',
+    )
+    fig.add_annotation(
+        x=15,
+        y=3,
+        text="<b>3 место</b><br>",
+        showarrow=False,
+        xanchor="right",
+        font_color='#ff6600',
+    )
+
+    return fig
 
 
 
@@ -420,12 +570,14 @@ app.layout = html.Div([
                 html.Div([
                     dbc.RadioItems(
                         id="YearSelector-mobile",
-                        options=[{'label': '2023', 'value': 2023},
-                                 {'label': '2022', 'value': 2022},
-                                 {'label': '2021', 'value': 2021},
-                                 {'label': '2020', 'value': 2020},
-                                 {'label': '2019', 'value': 2019},
-                                 {'label': '2018', 'value': 2018},
+                        options=[
+                             {'label': '2024', 'value': 2024},
+                             {'label': '2023', 'value': 2023},
+                             {'label': '2022', 'value': 2022},
+                             {'label': '2021', 'value': 2021},
+                             {'label': '2020', 'value': 2020},
+                             {'label': '2019', 'value': 2019},
+                             {'label': '2018', 'value': 2018},
                                  ],
                         labelClassName="date-group-labels",
                         labelCheckedClassName="date-group-labels-checked",
@@ -439,7 +591,7 @@ app.layout = html.Div([
             html.Div([
                 html.Div(
                     [
-                        html.Div("Количество команд", className='title'),
+                        html.Div("Количество игроков", className='title'),
                         html.Div(id='total_teams-mobile', className='indicator'),
                     ], style={}, className='square'),
 
@@ -520,12 +672,14 @@ app.layout = html.Div([
                     html.Div([
                                 dbc.RadioItems(
                                         id="YearSelector",
-                                        options=[{'label': '2023', 'value':2023},
-                                                 {'label': '2022', 'value':2022},
-                                                 {'label': '2021', 'value':2021},
-                                                 {'label': '2020', 'value':2020},
-                                                 {'label': '2019', 'value':2019},
-                                                 {'label': '2018', 'value':2018},
+                                        options=[
+                                             {'label': '2024', 'value': 2024},
+                                             {'label': '2023', 'value':2023},
+                                             {'label': '2022', 'value':2022},
+                                             {'label': '2021', 'value':2021},
+                                             {'label': '2020', 'value':2020},
+                                             {'label': '2019', 'value':2019},
+                                             {'label': '2018', 'value':2018},
                                                  ],
                                         labelClassName="date-group-labels",
                                         labelCheckedClassName="date-group-labels-checked",
@@ -539,7 +693,7 @@ app.layout = html.Div([
             html.Div([
                     html.Div(
                         [
-                            html.Div("Количество команд", className='title'),
+                            html.Div("Количество игроков", className='title'),
                             html.Div(id='total_teams', className='indicator'),
                         ], style={}, className='square'),
 
@@ -564,6 +718,22 @@ app.layout = html.Div([
                     html.Div(id='most_killed')
             ], style={'margin-bottom': '20px'},className='square__block'),
         ], className='year__selector-desktop'),
+
+
+        html.Div([
+            html.P('Дорожная карта команд', className='title'),
+            html.P('Цветом выделены только первые три места. Для слежения за своим фаворитом - выбери его в дропдауне. ',
+                   style={'color': '#757575', 'font-size': '12px',  'margin-bottom': '0',}),
+            html.Div([
+                    dcc.Dropdown(
+                        id='heatmap_team_dropdown',
+                        options=[],
+                        placeholder='Выбери команду',
+                    )], style={'width':'100%',  'margin-bottom': '20px'}),
+            dcc.Graph(id='heatmap',
+                      config={'displayModeBar': False},
+                      style={'max-width': '100%', 'width': '100%'}),
+        ], className='vrectangle heatmap__block'),
 
 
         html.Div([

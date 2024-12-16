@@ -25,11 +25,11 @@ button{
 .overplot .xy3 .points{
 
 }
-.points .plotly-customdata:nth-child(1){
-    fill: rgb(225 255 255)!Important;
-    stroke: #646464!Important;
-    stroke-width: 3px!Important;
-}
+/*.points .plotly-customdata:nth-child(1){*/
+/*    fill: rgb(225 255 255)!Important;*/
+/*    stroke: #646464!Important;*/
+/*    stroke-width: 3px!Important;*/
+/*}*/
 
 
 .btn{
@@ -407,9 +407,9 @@ button{
     display:none;
 }
 
-.ytick text{
-    fill:#fff!Important;
-}
+/*.ytick text{*/
+/*    fill:#fff!Important;*/
+/*}*/
 
 #TypeRefereeChart input{
     margin-right:5px!Important;
@@ -512,4 +512,8 @@ button{
     "compare_teams compare_teams compare_teams";
     "footer footer footer";
   grid-area: chart_area;
+}
+
+.dash-debug-menu__outer, .dash-debug-menu {
+    display: none !important;
 }

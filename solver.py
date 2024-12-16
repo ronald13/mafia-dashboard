@@ -197,6 +197,26 @@ class Mafia(object):
                                      columns="round_number",
                                      aggfunc='mean').fillna(0).values).reset_index(name='win_list')
         return win_by_round
+    def position_tracking(self):
+        """
+        get a dataframe with information about the team's position tracking by each round
+        result: dataframe
+        """
+        logger.info('Calculation position_tracking')
+        df_temp = self.get_info_about_all_games().copy()
+        df_temp['total_score'] = df_temp['score'] + df_temp['score_dop'] + df_temp['score_minus']
+        df_temp = df_temp.groupby(['round_number', 'team_name']).agg(only_win=('score', 'sum'),
+                                                               total_score=('total_score', 'sum'),
+                                                               dop_plus=('score_dop', 'sum'),
+                                                               dop_minus=('score_minus', 'sum')) \
+            .reset_index()
+        df_temp['cumulative_only_win'] = df_temp.groupby('team_name')['only_win'].cumsum()
+        df_temp['rank'] = df_temp.groupby('round_number', group_keys=False).apply(
+            lambda group: group.sort_values(by='cumulative_only_win', ascending=False).assign(rank=range(1, len(group) + 1)))[
+            'rank']
+
+        return df_temp[['rank', 'team_name', 'cumulative_only_win', 'round_number']]
+
     def referee_score(self):
         """
         the number of  score awarded by the referee
