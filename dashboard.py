@@ -365,9 +365,7 @@ def update_graph(team, year):
 
     df_Active = kchb.position_tracking()
 
-    # rounds = ['Тур ' + str(x) for x in range(1, 14 + 1)]
-    # df_Active = kchb.wind_by_round_referee()
-    # df_Active = df_Active[df_Active['team_name'] == team]
+    print(kchb.make_firstshot_table())
 
     def generate_colors(num_teams):
         """
@@ -420,7 +418,7 @@ def update_graph(team, year):
             text=[team] * len(team_data),
             customdata=team_data['rank'].astype('str'),
             hovertemplate='<b>%{text}</b><br>'
-                          '%{x} Тур - %{customdata} место' +
+                          '%{x} - %{customdata} место' +
                           '<extra></extra>',
         ))
 
@@ -437,7 +435,7 @@ def update_graph(team, year):
             text=[team] * len(team_data),
             customdata=team_data['rank'].astype('str'),
             hovertemplate='<b>%{text}</b><br>'
-                         '%{x} Тур - %{customdata} место' +
+                         '%{x} - %{customdata} место' +
                           '<extra></extra>',
         ))
 
@@ -457,7 +455,7 @@ def update_graph(team, year):
             tickmode='array',
             tickvals=list(range(1,teams_number + 1)),
             ticktext=team_order1,  # Подписи команд
-            tickfont=dict(color='red')
+            # tickfont=dict(color='red')
         ),
         xaxis=dict(
             range=[0.8, 15],

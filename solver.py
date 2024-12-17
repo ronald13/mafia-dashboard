@@ -128,7 +128,9 @@ class Mafia(object):
             {'score_firstshot': 'sum', 'player_id': 'count', 'who_win': 'sum'}).sort_values(by='player_id',
                                                                                             ascending=False).reset_index().rename(
             columns={'player_id': 'number_shot', 'who_win': 'shot_and_lose'})
+
         number_first_shot = number_first_shot.apply(df_firstshot_with_hit_rate, axis=1, args=(14,))
+
         logger.info('First-Shot table has been created!')
         return number_first_shot
     def get_total_score_table(self):
