@@ -78,6 +78,13 @@ button{
     border-radius: 16.8px;
     background-color: #f3f2f2;
 }
+@media (max-width: 450px) {
+    #YearSelector{
+        background-color: transparent!important;
+    }
+}
+
+
 
 .dash-filter input[type='text']{
     text-align:left!Important;;
@@ -516,4 +523,26 @@ button{
 
 .dash-debug-menu__outer, .dash-debug-menu {
     display: none !important;
+}
+
+
+.checklist{
+    /*display:flex;*/
+    /*align-items: center;*/
+    font-size: 14px;
+    /*gap: 10px;*/
+    
+}
+
+.checklist label{
+   margin-right: 10px;
+
+}
+
+.checklist label input{
+   margin-right: 10px;
+}
+
+.checklist input[type="checkbox"]:checked {
+    accent-color: #f99746;
 }

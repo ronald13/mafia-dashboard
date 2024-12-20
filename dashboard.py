@@ -15,6 +15,7 @@ from pathlib import Path
 from loguru import logger
 import json
 import seaborn as sns
+import dash_mantine_components as dmc
 
 
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -83,8 +84,8 @@ server = app.server
      Output('round_win_referee_dropdown', 'options'),
      Output('table_setting_team_dropdown', 'options'),
      Output('tornado_team_dropdown_1', 'options'),
-     Output('tornado_team_dropdown_2', 'options'),
-     Output('heatmap_team_dropdown', 'options')],
+     Output('tornado_team_dropdown_2', 'options')],
+     # Output('heatmap_team_dropdown', 'options')],
      Input('YearSelector', 'value')
 )
 def update_dropdown_options(year):
@@ -93,7 +94,7 @@ def update_dropdown_options(year):
     #     return
     teams_list = kchb.teams_list()
     teams_list_options = [{'label': i, 'value': i} for i in teams_list]
-    return teams_list_options, teams_list_options, teams_list_options, teams_list_options, teams_list_options, teams_list_options
+    return teams_list_options, teams_list_options, teams_list_options, teams_list_options, teams_list_options
 
 @app.callback(
     [Output('round_win_multi_dropdown', 'value'),
@@ -101,14 +102,14 @@ def update_dropdown_options(year):
      Output('table_setting_team_dropdown', 'value'),
      Output('tornado_team_dropdown_1', 'value'),
      Output('tornado_team_dropdown_2', 'value'),
-     Output('heatmap_team_dropdown', 'value')
+     # Output('heatmap_team_dropdown', 'value')
      ],
     [Input('round_win_multi_dropdown', 'options'),
      Input('round_win_referee_dropdown', 'options'),
      Input('table_setting_team_dropdown', 'options'),
      Input('tornado_team_dropdown_1', 'options'),
      Input('tornado_team_dropdown_2', 'options'),
-     Input('heatmap_team_dropdown', 'options')
+     # Input('heatmap_team_dropdown', 'options')
      ],
 )
 def update_dropdown_values(round_win_multi_dropdown,
@@ -116,14 +117,14 @@ def update_dropdown_values(round_win_multi_dropdown,
                            table_setting_team_dropdown,
                            tornado_team_dropdown_1,
                            tornado_team_dropdown_2,
-                           heatmap_team_dropdown
+                           # heatmap_team_dropdown
                            ):
 
     teams_list_value = [k['value'] for k in round_win_referee_dropdown][0]
     teams_list_value_2 = [k['value'] for k in round_win_referee_dropdown][1]
     multi_team_list = [k['value'] for k in round_win_referee_dropdown][0:3]
     return (multi_team_list,
-            teams_list_value, teams_list_value, teams_list_value, teams_list_value_2, teams_list_value
+            teams_list_value, teams_list_value, teams_list_value, teams_list_value_2
             )
 
 # TEAM STATISTIC
@@ -131,7 +132,7 @@ def update_dropdown_values(round_win_multi_dropdown,
     [Output('top_winner', 'children'),
      Output('personal_winner', 'children'),
      Output('additional_awards', 'children')],
-    Input('YearSelector', 'value')
+     Input('YearSelector', 'value')
 )
 def update_graph(year):
     kchb = kchb_by_years.get(year)
@@ -203,6 +204,7 @@ def update_graph(year):
         return
     total_teams = kchb.teams.shape[0]
     total_games = kchb.games.shape[0] / 10
+
     win_lose_figure = simple_pie(colors=['#E0DDAA', '#A27B5C'], title='', values=[el * 100 for el in kchb.win_lose()])
     most_killed = kchb.death_leader()
     best_score = kchb.full_best_score()
@@ -218,13 +220,14 @@ def update_graph(year):
         ], style={},
            className='square'),
 
-
+    print(most_killed)
     most_killed_layout = html.Div(
         [
             html.Div("Смертник", className='title', style={'margin-bottom': '25px'}),
             html.Div(most_killed[0], className='indicator', style={'font-size': '26px', 'margin-bottom': '10px'}),
             html.Div(most_killed[1], style={'color': '#757575', 'font-size': '12px', 'margin-bottom': '0', }),
         ], style={'margin-right': '20px', }, className='square'),
+
 
     return (total_teams, total_games, win_lose_figure, best_score_layout,  most_killed_layout,
            total_teams, total_games, win_lose_figure, best_score_layout, most_killed_layout)
@@ -355,17 +358,26 @@ def update_graph(team_list, year):
 
 @app.callback(
     Output('heatmap', 'figure'),
-    [Input('heatmap_team_dropdown', 'value'),
-     Input('YearSelector', 'value')]
+    Input('heatmaps-checklist', 'value'),
+    Input('YearSelector', 'value')
 )
-def update_graph(team, year):
+def update_graph(checklist, year):
+    print('checklist', checklist)
     kchb = kchb_by_years.get(year)
     if not kchb:
         return
 
-    df_Active = kchb.position_tracking()
+    if checklist == ['win']:
+        type = 'win'
+    elif sorted(checklist) == ['firstshot', 'win']:
+        type = 'firstshot'
+    elif sorted(checklist) == ['Ci', 'firstshot', 'win']:
+        type = 'total_score'
+    else:
+        type = None
 
-    print(kchb.make_firstshot_table())
+
+    df_Active = kchb.position_tracking(type=type)
 
     def generate_colors(num_teams):
         """
@@ -379,18 +391,14 @@ def update_graph(team, year):
         """
         # Яркие цвета для топ-3
         bright_colors = [
-            '#d4af37',  # Яркий красный
-            '#cccccc',  # Яркий зеленый
-            '#ff6600'  # Яркий синий
+            '#d4af37',  # Gold - 1 место
+            '#cccccc',  # Silver - 2 место
+            '#ff6600'  # Bronze - 3 место
         ]
 
-        # Создаем градиент пастельных цветов для остальных команд
-
-        # Если команд <= 3, используем только яркие цвета
         if num_teams <= 3:
             return bright_colors[:num_teams]
 
-        # Для большего числа команд добавляем пастельные цвета
         return bright_colors + ['#757575'] * (num_teams - 3)
 
     teams_number = len(kchb.teams_list())
@@ -405,7 +413,6 @@ def update_graph(team, year):
 
     for i, team in enumerate(top3_team):
         team_data = df_Active[df_Active['team_name'] == team]
-        print(team_data)
         rank_data = team_data['rank']
 
         fig.add_trace(go.Scatter(
@@ -551,7 +558,6 @@ def update_Tornado(team1, team2, year):
     return fig
 
 
-
 app.layout = html.Div([
 
     html.Div([
@@ -566,8 +572,8 @@ app.layout = html.Div([
             html.Div([
                 html.P('Турнирная статистика за года', className='title'),
                 html.Div([
-                    dbc.RadioItems(
-                        id="YearSelector-mobile",
+                    dcc.Dropdown(
+                        id="YearSelector",
                         options=[
                              {'label': '2024', 'value': 2024},
                              {'label': '2023', 'value': 2023},
@@ -577,10 +583,11 @@ app.layout = html.Div([
                              {'label': '2019', 'value': 2019},
                              {'label': '2018', 'value': 2018},
                                  ],
-                        labelClassName="date-group-labels",
-                        labelCheckedClassName="date-group-labels-checked",
-                        inline=True,
+                        className="",
+                        # labelCheckedClassName="date-group-labels-checked",
+                        # inline=True,
                         value=2023,
+                        style={'width': '200px'}
                         # style={'margin': '0 20px 20px 0'}
                     ),
                 ], style={'display': 'flex', 'flex-wrap': 'wrap'}),
@@ -723,11 +730,19 @@ app.layout = html.Div([
             html.P('Цветом выделены только первые три места. Для слежения за своим фаворитом - выбери его в дропдауне. ',
                    style={'color': '#757575', 'font-size': '12px',  'margin-bottom': '0',}),
             html.Div([
-                    dcc.Dropdown(
-                        id='heatmap_team_dropdown',
-                        options=[],
-                        placeholder='Выбери команду',
-                    )], style={'width':'100%',  'margin-bottom': '20px'}),
+                    dcc.Checklist(
+                        id='heatmaps-checklist',
+                        options=[
+                            {'label': 'Только победы', 'value': ''},
+                            {'label': 'ЛХ', 'value': 'firstshot'},
+                            {'label': 'Сi', 'value': 'Ci'},
+                        ],
+                        value=['win', 'firstshot', 'Ci'],
+                        inline=True,
+                        style={'color': 'white', 'text-align':'right'},
+                        className='checklist',
+                    )
+            ], style={'width':'100%',  'margin-bottom': '20px'}),
             dcc.Graph(id='heatmap',
                       config={'displayModeBar': False},
                       style={'max-width': '100%', 'width': '100%'}),
@@ -808,8 +823,6 @@ app.layout = html.Div([
 
     ], style={'display': 'flex', 'flex-direction': 'column', 'padding': '10px 20px', 'flex-basis':'75%'}),
 ], style={'display': 'flex'}, className='app__wrapper')
-
-
 
 # don't run when imported, only when standalone
 if __name__ == '__main__':

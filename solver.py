@@ -5,6 +5,8 @@ from pandas import json_normalize
 from loguru import logger
 import plotly.graph_objects as go
 
+
+
 def merge_two_dicts(x, y):
     z = x.copy()   # start with keys and values of x
     z.update(y)    # modifies z with keys and values of y
@@ -19,18 +21,17 @@ def count_number(list, num):
         new_l.append(list.count(i))
     return new_l
 
-def df_firstshot_with_hit_rate(df, all_games_number):
+def df_firstshot_with_hit_rate(row, all_games_number):
     """
     Сalculate the shooting rate according to the FIIM formula
     The value B = 0.4 * number of all games in the tournament and rounded to the nearest integer.
     """
 
     B = round(0.4 * all_games_number)
-    if df['number_shot'] <= B:
-        df['Ci'] = round(((df['number_shot'] * 0.4 / B) * df['shot_and_lose']), 2)
+    if row['number_shot'] <= B:
+        return round((row['number_shot'] * 0.4 / B), 4)
     else:
-        df['Ci'] = round((0.4 * df['shot_and_lose']), 2)
-    return df
+        return 0.4
 
 
 class Mafia(object):
@@ -104,35 +105,59 @@ class Mafia(object):
             0).reset_index()
         return box_distribution
 
-    def make_firstshot_table(self):
+    def make_firstshot_table(self,  type='total'):
         """
         create information about first shot and calculate hit rate for every game
+        type: str
+            - total - return aggregated table with columns: team_name, team_name, score_firstshot, number_shot,  shot_and_lose, Ci
+            - round  - return aggregated table with additional columns: game_id, round_number
         """
         # logger.info('Calculating firstshot table...')
         first_shot = self.first_shot
 
-        col = ['table', 'number', 'winner_id', 'gamefirstshot.player_id',
+        col = ['id', 'table', 'number', 'winner_id', 'gamefirstshot.player_id',
                'gamefirstshot.boxNumber', 'gamefirstshot.score']
         firstshot_df = first_shot[col].rename(
-            columns={'number': 'game_number', 'winner_id': 'who_win', 'gamefirstshot.player_id': 'player_id',
+            columns={'id': 'game_id', 'number': 'round_number', 'winner_id': 'who_win',
+                     'gamefirstshot.player_id': 'player_id',
                      'gamefirstshot.boxNumber': 'boxNumber', 'gamefirstshot.score': 'score'})
-
+        firstshot_df.dropna(subset=['game_id', 'player_id', 'round_number', 'score'], inplace=True)
         firstshot_df['score'] = firstshot_df['score'].astype('float')
+
+        firstshot_df.dropna(subset=['game_id', 'player_id', 'round_number', 'score'], inplace=True)
 
         firstshot_df = pd.merge(firstshot_df, self.get_all_players()[['player_id', 'player_name', "team_name"]],
                                 how="left",
                                 on="player_id").rename(columns={'score': 'score_firstshot'})
 
+        firstshot_df['number_shot_by_round'] = firstshot_df.groupby(['player_id', 'round_number'])[
+            'score_firstshot'].transform('count')
 
-        number_first_shot = firstshot_df.groupby(['player_name', "team_name"]).agg(
-            {'score_firstshot': 'sum', 'player_id': 'count', 'who_win': 'sum'}).sort_values(by='player_id',
-                                                                                            ascending=False).reset_index().rename(
-            columns={'player_id': 'number_shot', 'who_win': 'shot_and_lose'})
+        firstshot_df['shot_and_lose'] = firstshot_df.groupby('player_id')['who_win'].transform(
+            lambda x: (x == 1).sum())  # the player was killed, and the team lost
 
-        number_first_shot = number_first_shot.apply(df_firstshot_with_hit_rate, axis=1, args=(14,))
+        firstshot_df['number_shot'] = firstshot_df.groupby(['player_id', ])['round_number'].transform(
+            'count')  # total player deaths
 
-        logger.info('First-Shot table has been created!')
-        return number_first_shot
+        # points for a kill on the first night (Ci) in the current round
+        firstshot_df['Ci_by_round'] = firstshot_df.apply(df_firstshot_with_hit_rate, axis=1, args=(14,))
+        firstshot_df['Ci_by_round'] = round(firstshot_df['Ci_by_round'] * firstshot_df['who_win'],2)
+
+        firstshot_df['Ci_total'] = round(firstshot_df['Ci_by_round'] * firstshot_df['shot_and_lose'], 2)  # total points for a kill on the first night (Ci)
+        firstshot_df['merge_id'] = firstshot_df['round_number'].astype('str') + firstshot_df['team_name']
+        print(firstshot_df)
+        if type == 'total':
+            return firstshot_df.groupby(['player_name', 'team_name']).agg(
+                score_firstshot=('score_firstshot', 'sum'),
+                number_shot=('number_shot_by_round', 'sum'),
+                Ci=('Ci_by_round', 'sum'),
+            ).reset_index().sort_values(by='number_shot', ascending=False)
+
+        elif type == 'round':
+            return firstshot_df
+
+        else:
+            logger.error('Calculation type not recognized!')
     def get_total_score_table(self):
         """
         the final table that can be used to display the results
@@ -147,6 +172,7 @@ class Mafia(object):
 
         total_result_players['total']  = total_result_players['score'] + total_result_players['score_dop'] + total_result_players['score_firstshot'] + total_result_players['score_minus'] + total_result_players['Ci']
         total_result = total_result_players.sort_values(by='total', ascending=False)
+
         return total_result
 
     def team_metrics(self):
@@ -199,7 +225,7 @@ class Mafia(object):
                                      columns="round_number",
                                      aggfunc='mean').fillna(0).values).reset_index(name='win_list')
         return win_by_round
-    def position_tracking(self):
+    def position_tracking(self, type='win'):
         """
         get a dataframe with information about the team's position tracking by each round
         result: dataframe
@@ -212,12 +238,35 @@ class Mafia(object):
                                                                dop_plus=('score_dop', 'sum'),
                                                                dop_minus=('score_minus', 'sum')) \
             .reset_index()
-        df_temp['cumulative_only_win'] = df_temp.groupby('team_name')['only_win'].cumsum()
-        df_temp['rank'] = df_temp.groupby('round_number', group_keys=False).apply(
-            lambda group: group.sort_values(by='cumulative_only_win', ascending=False).assign(rank=range(1, len(group) + 1)))[
-            'rank']
+        df_temp['merge_id'] = df_temp['round_number'].astype('str') + df_temp['team_name']
 
-        return df_temp[['rank', 'team_name', 'cumulative_only_win', 'round_number']]
+        firstshot_table = self.make_firstshot_table(type='round').groupby('merge_id').agg(
+            score_firstshot=('score_firstshot', 'sum'),
+            Ci_by_round=('Ci_by_round', 'sum')).reset_index()
+
+        full_df = df_temp.merge(
+            firstshot_table[['merge_id', 'score_firstshot', 'Ci_by_round']],
+            how='left',
+            on='merge_id'
+        )
+        full_df.fillna(0, inplace=True)
+
+        if type == 'win':
+            full_df['cumulative_metric'] = full_df.groupby('team_name')['only_win'].cumsum()
+        elif type == 'total_score':
+            full_df['cumulative_metric'] = full_df.groupby('team_name')['total_score'].cumsum()
+        elif type == 'firstshot':
+            full_df['total+firstshot'] = full_df['total_score'] + full_df['score_firstshot']
+            full_df['cumulative_metric'] = full_df.groupby('team_name')['total+firstshot'].cumsum()
+        elif type == 'Ci':
+            full_df['total+ci'] = full_df['total_score'] + full_df['Ci_by_round']
+            full_df['cumulative_metric'] = full_df.groupby('team_name')['total+ci'].cumsum()
+
+        full_df['rank'] = full_df.groupby('round_number', group_keys=False).apply(
+            lambda group: group.sort_values(by='cumulative_metric', ascending=False).assign(rank=range(1, len(group) + 1)))[
+            'rank']
+        print(full_df)
+        return full_df[['rank', 'team_name', 'cumulative_metric', 'round_number']]
 
     def referee_score(self):
         """
@@ -232,7 +281,7 @@ class Mafia(object):
         percentage of mafia and civilian wins
         result: [mafia,citizen]
         """
-        win_lose = self.get_info_about_all_games()['winner'].value_counts(normalize=True).round(2).reset_index()['winner'].to_list()
+        win_lose = self.get_info_about_all_games()['winner'].value_counts(normalize=True).round(2).reset_index()['proportion'].to_list()
         return win_lose
 
     def game_results(self, normalize=True):
@@ -250,6 +299,7 @@ class Mafia(object):
         """
         most killed player: [nick, number]
         """
+
         return [self.make_firstshot_table().iloc[0]['player_name'], self.make_firstshot_table().iloc[0]['number_shot']]
 
     def full_best_score(self):
