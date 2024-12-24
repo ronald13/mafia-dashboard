@@ -80,7 +80,8 @@ server = app.server
 
 # DROPDOWN UPDATING
 @app.callback(
-    [Output('round_win_multi_dropdown', 'options'),
+    [
+        # Output('round_win_multi_dropdown', 'options'),
      Output('round_win_referee_dropdown', 'options'),
      Output('table_setting_team_dropdown', 'options'),
      Output('tornado_team_dropdown_1', 'options'),
@@ -94,17 +95,19 @@ def update_dropdown_options(year):
     #     return
     teams_list = kchb.teams_list()
     teams_list_options = [{'label': i, 'value': i} for i in teams_list]
-    return teams_list_options, teams_list_options, teams_list_options, teams_list_options, teams_list_options
+    return teams_list_options, teams_list_options, teams_list_options, teams_list_options
 
 @app.callback(
-    [Output('round_win_multi_dropdown', 'value'),
+    [
+        # Output('round_win_multi_dropdown', 'value'),
      Output('round_win_referee_dropdown', 'value'),
      Output('table_setting_team_dropdown', 'value'),
      Output('tornado_team_dropdown_1', 'value'),
      Output('tornado_team_dropdown_2', 'value'),
      # Output('heatmap_team_dropdown', 'value')
      ],
-    [Input('round_win_multi_dropdown', 'options'),
+    [
+        # Input('round_win_multi_dropdown', 'options'),
      Input('round_win_referee_dropdown', 'options'),
      Input('table_setting_team_dropdown', 'options'),
      Input('tornado_team_dropdown_1', 'options'),
@@ -112,7 +115,7 @@ def update_dropdown_options(year):
      # Input('heatmap_team_dropdown', 'options')
      ],
 )
-def update_dropdown_values(round_win_multi_dropdown,
+def update_dropdown_values(
                            round_win_referee_dropdown,
                            table_setting_team_dropdown,
                            tornado_team_dropdown_1,
@@ -123,8 +126,7 @@ def update_dropdown_values(round_win_multi_dropdown,
     teams_list_value = [k['value'] for k in round_win_referee_dropdown][0]
     teams_list_value_2 = [k['value'] for k in round_win_referee_dropdown][1]
     multi_team_list = [k['value'] for k in round_win_referee_dropdown][0:3]
-    return (multi_team_list,
-            teams_list_value, teams_list_value, teams_list_value, teams_list_value_2
+    return (teams_list_value, teams_list_value, teams_list_value, teams_list_value_2
             )
 
 # TEAM STATISTIC
@@ -220,7 +222,6 @@ def update_graph(year):
         ], style={},
            className='square'),
 
-    print(most_killed)
     most_killed_layout = html.Div(
         [
             html.Div("Смертник", className='title', style={'margin-bottom': '25px'}),
@@ -315,46 +316,46 @@ def update_graph(team, year):
     return spider_layout
 
 
-@app.callback(
-    Output('total_win', 'figure'),
-    [Input('round_win_multi_dropdown', 'value'),
-     Input('YearSelector', 'value')]
-)
-def update_graph(team_list, year):
-    kchb = kchb_by_years.get(year)
-    if not kchb:
-        return
-    rounds = ['Тур ' + str(x) for x in range(1, GAME_NUMBER + 1)]
-    df_Active = kchb.win_by_round()
-    df_Active = df_Active[df_Active['team_name'].isin(team_list)].sort_values(by=[df_Active.columns[-1]], ascending=True).reset_index(drop=True)
-
-    fig = go.Figure()
-    for i in range(0, len(df_Active)):
-        fig.add_trace(go.Scatter(
-            x=rounds,
-            y=df_Active.loc[i, :].to_list()[1:],
-            # fill='tozeroy',
-            hovertemplate=df_Active['team_name'][i] +'<br>'+
-            '%{x}' + '<br>'+
-            '<b>Итого побед: </b>'+ '%{y}' +
-            '<extra></extra>',
-            name=df_Active['team_name'][i],))
-    fig.update_layout(
-        autosize=True,
-        margin=dict(l=0, r=10, t=20, pad=10),
-        template=template,
-        legend=dict(
-            x=0,
-            y=1.1,
-            orientation="h")
-    )
-    fig.update_traces(
-        # marker_color=['#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#34495e', '#f1c40f', '#e67e22', '#e74c3c', '#ecf0f1', '#7f8c8d'],
-        # marker_color=marker_color_full,
-    )
-    fig.update_xaxes(title='<b>Номер тура</b>')
-    fig.update_yaxes(title='<b>Победы</b>')
-    return fig
+# @app.callback(
+#     Output('total_win', 'figure'),
+#     [Input('round_win_multi_dropdown', 'value'),
+#      Input('YearSelector', 'value')]
+# )
+# def update_graph(team_list, year):
+#     kchb = kchb_by_years.get(year)
+#     if not kchb:
+#         return
+#     rounds = ['Тур ' + str(x) for x in range(1, GAME_NUMBER + 1)]
+#     df_Active = kchb.win_by_round()
+#     df_Active = df_Active[df_Active['team_name'].isin(team_list)].sort_values(by=[df_Active.columns[-1]], ascending=True).reset_index(drop=True)
+#
+#     fig = go.Figure()
+#     for i in range(0, len(df_Active)):
+#         fig.add_trace(go.Scatter(
+#             x=rounds,
+#             y=df_Active.loc[i, :].to_list()[1:],
+#             # fill='tozeroy',
+#             hovertemplate=df_Active['team_name'][i] +'<br>'+
+#             '%{x}' + '<br>'+
+#             '<b>Итого побед: </b>'+ '%{y}' +
+#             '<extra></extra>',
+#             name=df_Active['team_name'][i],))
+#     fig.update_layout(
+#         autosize=True,
+#         margin=dict(l=0, r=10, t=20, pad=10),
+#         template=template,
+#         legend=dict(
+#             x=0,
+#             y=1.1,
+#             orientation="h")
+#     )
+#     fig.update_traces(
+#         # marker_color=['#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#34495e', '#f1c40f', '#e67e22', '#e74c3c', '#ecf0f1', '#7f8c8d'],
+#         # marker_color=marker_color_full,
+#     )
+#     fig.update_xaxes(title='<b>Номер тура</b>')
+#     fig.update_yaxes(title='<b>Победы</b>')
+#     return fig
 
 @app.callback(
     Output('heatmap', 'figure'),
@@ -362,20 +363,33 @@ def update_graph(team_list, year):
     Input('YearSelector', 'value')
 )
 def update_graph(checklist, year):
-    print('checklist', checklist)
     kchb = kchb_by_years.get(year)
     if not kchb:
         return
 
     if checklist == ['win']:
         type = 'win'
-    elif sorted(checklist) == ['firstshot', 'win']:
+    elif sorted(checklist) == ['dops', 'win']:
+        type = 'dops'
+    elif sorted(checklist) == ['dops', 'firstshot', 'win']:
         type = 'firstshot'
+    elif sorted(checklist) == ['Ci', 'win', ]:
+        type = 'Ci'
+    elif sorted(checklist) == ['firstshot', 'win']:
+        type = 'win+firstshot'
+    elif sorted(checklist) == ['Ci', 'dops', 'win']:
+        type = 'dops+Ci'
     elif sorted(checklist) == ['Ci', 'firstshot', 'win']:
+        type = 'no_dops'
+    elif sorted(checklist) == ['Ci', 'dops', 'firstshot', 'win',]:
         type = 'total_score'
     else:
         type = None
 
+    print('Checklist: ', checklist)
+    print('*************')
+    print('***', type, '***')
+    print('*************')
 
     df_Active = kchb.position_tracking(type=type)
 
@@ -413,7 +427,6 @@ def update_graph(checklist, year):
 
     for i, team in enumerate(top3_team):
         team_data = df_Active[df_Active['team_name'] == team]
-        rank_data = team_data['rank']
 
         fig.add_trace(go.Scatter(
             x=team_data['round_number'],
@@ -429,7 +442,7 @@ def update_graph(checklist, year):
                           '<extra></extra>',
         ))
 
-    for i, team in enumerate(team_order[4:]):
+    for i, team in enumerate(team_order[3:]):
         team_data = df_Active[df_Active['team_name'] == team]
 
         fig.add_trace(go.Scatter(
@@ -556,6 +569,15 @@ def update_Tornado(team1, team2, year):
     fig = create_tornado(tor_df, team1, team2, marker_color=marker_color)
 
     return fig
+
+@app.callback(
+    Output('heatmaps-checklist', 'value'),
+    Input('heatmaps-checklist', 'value'),
+)
+def enforce_win_selection(selected_values):
+    if 'win' not in selected_values:
+        return selected_values + ['win']
+    return selected_values
 
 
 app.layout = html.Div([
@@ -716,9 +738,21 @@ app.layout = html.Div([
                         [
                             html.Div("Победы", className='title'),
                             html.Div([
-                                dcc.Graph(id='win_lose',  config={'displayModeBar': False}, style={}),
+                                dcc.Loading(
+                                    [dcc.Graph(id="win_lose",
+                                              )],
+                                    type="circle",
+                                    style={
+                                        "position": "relative",
+                                        "backgroundColor": "none",
+                                    },
+                                ),
                             ]),
-                        ], style={}, className='square'),
+                        ], style={
+                                    "position": "relative",  # Контейнер для относительного позиционирования
+                                    # "width": "100%",  # Подгоняем ширину контейнера
+                                    # "height": "500px",  # Укажите фиксированную высоту для блока графика
+                                }, className='square'),
                     html.Div(id='best_score'),
                     html.Div(id='most_killed')
             ], style={'margin-bottom': '20px'},className='square__block'),
@@ -733,11 +767,12 @@ app.layout = html.Div([
                     dcc.Checklist(
                         id='heatmaps-checklist',
                         options=[
-                            {'label': 'Только победы', 'value': ''},
-                            {'label': 'ЛХ', 'value': 'firstshot'},
-                            {'label': 'Сi', 'value': 'Ci'},
+                            {'label': html.Div([html.Span('only' ), html.Span(' WIN')], className='checklist_label' ), 'value': 'win'},
+                            {'label': html.Div([html.Span('with' ), html.Span(' ДБ')], className='checklist_label' ), 'value': 'dops'},
+                            {'label': html.Div([html.Span('with' ), html.Span(' ЛХ')], className='checklist_label' ), 'value': 'firstshot'},
+                            {'label': html.Div([html.Span('with' ), html.Span(' Ci')], className='checklist_label' ), 'value': 'Ci'},
                         ],
-                        value=['win', 'firstshot', 'Ci'],
+                        value=['Ci', 'dops', 'firstshot', 'win' ],
                         inline=True,
                         style={'color': 'white', 'text-align':'right'},
                         className='checklist',
@@ -749,20 +784,20 @@ app.layout = html.Div([
         ], className='vrectangle heatmap__block'),
 
 
-        html.Div([
-            html.P('Движение по играм', className='title'),
-            html.P('График помогает проследить как двигалась ваша команда по игровой дистанции и сравнивать этот результат с другими командами',
-                   style={'color': '#757575', 'font-size': '12px',  'margin-bottom': '0',}),
-            html.Div([
-                    dcc.Dropdown(
-                        id='round_win_multi_dropdown',
-                        options=[],
-                        multi=True,
-                    )], style={'width':'100%',  'margin-bottom': '20px'}),
-            dcc.Graph(id='total_win',
-                      config={'displayModeBar': False},
-                      style={'max-width': '100%', 'width': '100%'}),
-        ], className='vrectangle'),
+        # html.Div([
+        #     html.P('Движение по играм', className='title'),
+        #     html.P('График помогает проследить как двигалась ваша команда по игровой дистанции и сравнивать этот результат с другими командами',
+        #            style={'color': '#757575', 'font-size': '12px',  'margin-bottom': '0',}),
+        #     html.Div([
+        #             dcc.Dropdown(
+        #                 id='round_win_multi_dropdown',
+        #                 options=[],
+        #                 multi=True,
+        #             )], style={'width':'100%',  'margin-bottom': '20px'}),
+        #     dcc.Graph(id='total_win',
+        #               config={'displayModeBar': False},
+        #               style={'max-width': '100%', 'width': '100%'}),
+        # ], className='vrectangle'),
 
         html.Div([
             html.P('Количество побед по турам', className='title'),

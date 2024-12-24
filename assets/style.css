@@ -536,13 +536,29 @@ button{
 
 .checklist label{
    margin-right: 10px;
+    display: inline-flex!important;
+    align-items: center;
 
 }
 
 .checklist label input{
-   margin-right: 10px;
+     width: 22px;
+     height:22px;
+     margin-right: 10px;
 }
 
 .checklist input[type="checkbox"]:checked {
     accent-color: #f99746;
+}
+
+.checklist_label span:first-of-type{
+    font-size: 9px;
+    opacity: 0.5;
+    margin-bottom: -5px;
+}
+
+.checklist_label{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }

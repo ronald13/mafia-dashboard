@@ -145,7 +145,7 @@ class Mafia(object):
 
         firstshot_df['Ci_total'] = round(firstshot_df['Ci_by_round'] * firstshot_df['shot_and_lose'], 2)  # total points for a kill on the first night (Ci)
         firstshot_df['merge_id'] = firstshot_df['round_number'].astype('str') + firstshot_df['team_name']
-        print(firstshot_df)
+
         if type == 'total':
             return firstshot_df.groupby(['player_name', 'team_name']).agg(
                 score_firstshot=('score_firstshot', 'sum'),
@@ -253,19 +253,35 @@ class Mafia(object):
 
         if type == 'win':
             full_df['cumulative_metric'] = full_df.groupby('team_name')['only_win'].cumsum()
-        elif type == 'total_score':
-            full_df['cumulative_metric'] = full_df.groupby('team_name')['total_score'].cumsum()
+        elif type == 'dops':
+            full_df['win+dops'] = full_df['total_score']
+            full_df['cumulative_metric'] = full_df.groupby('team_name')['win+dops'].cumsum()
         elif type == 'firstshot':
-            full_df['total+firstshot'] = full_df['total_score'] + full_df['score_firstshot']
-            full_df['cumulative_metric'] = full_df.groupby('team_name')['total+firstshot'].cumsum()
+            full_df['win+firstshot'] = full_df['only_win'] + full_df['score_firstshot']
+            full_df['cumulative_metric'] = full_df.groupby('team_name')['win+firstshot'].cumsum()
+        elif type == 'dops+Ci':
+            full_df['total_score+Ci'] = full_df['total_score'] + full_df['Ci_by_round']
+            full_df['cumulative_metric'] = full_df.groupby('team_name')['total_score+Ci'].cumsum()
+        elif type == 'win+firstshot':
+            full_df['win+firstshot'] = full_df['only_win'] + full_df['score_firstshot']
+            full_df['cumulative_metric'] = full_df.groupby('team_name')['win+firstshot'].cumsum()
+        elif type == 'no_dops':
+            full_df['no_dops'] = full_df['only_win'] + full_df['score_firstshot'] + full_df['Ci_by_round']
+            full_df['cumulative_metric'] = full_df.groupby('team_name')['no_dops'].cumsum()
+        elif type == 'total_score':
+            full_df['total+firstshot+Ci'] = full_df['total_score'] + full_df['score_firstshot'] + full_df['Ci_by_round']
+            full_df['cumulative_metric'] = full_df.groupby('team_name')['total+firstshot+Ci'].cumsum()
+
+
         elif type == 'Ci':
-            full_df['total+ci'] = full_df['total_score'] + full_df['Ci_by_round']
-            full_df['cumulative_metric'] = full_df.groupby('team_name')['total+ci'].cumsum()
+            full_df['win+ci'] = full_df['total_score'] + full_df['Ci_by_round']
+            full_df['cumulative_metric'] = full_df.groupby('team_name')['win+ci'].cumsum()
 
         full_df['rank'] = full_df.groupby('round_number', group_keys=False).apply(
             lambda group: group.sort_values(by='cumulative_metric', ascending=False).assign(rank=range(1, len(group) + 1)))[
             'rank']
-        print(full_df)
+        print('=====After Cumulative Metrics=====')
+        print(full_df[full_df['round_number'] == 2])
         return full_df[['rank', 'team_name', 'cumulative_metric', 'round_number']]
 
     def referee_score(self):
