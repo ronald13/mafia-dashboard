@@ -11,11 +11,9 @@ from plotly.subplots import make_subplots
 from prep import create_tornado, simple_bar, stacked_bar, simple_pie, draw_pie, make_spider, text_fig, create_box_bars
 from styling import template, marker_color, marker_color_full, color_list
 from solver import Mafia, merge_two_dicts
-from pathlib import Path
 from loguru import logger
 import json
-import seaborn as sns
-import dash_mantine_components as dmc
+
 
 
 pd.options.mode.chained_assignment = None  # default='warn'
