@@ -281,7 +281,7 @@ class Mafia(object):
             lambda group: group.sort_values(by='cumulative_metric', ascending=False).assign(rank=range(1, len(group) + 1)))[
             'rank']
         print('=====After Cumulative Metrics=====')
-        print(full_df[full_df['round_number'] == 2])
+        print(full_df[full_df['round_number'] == 14])
         return full_df[['rank', 'team_name', 'cumulative_metric', 'round_number']]
 
     def referee_score(self):

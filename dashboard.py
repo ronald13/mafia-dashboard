@@ -356,8 +356,8 @@ def update_graph(team, year):
 #     return fig
 
 @app.callback(
-    Output('heatmap', 'figure'),
-    Input('heatmaps-checklist', 'value'),
+    Output('ranking_track', 'figure'),
+    Input('ranking_track-checklist', 'value'),
     Input('YearSelector', 'value')
 )
 def update_graph(checklist, year):
@@ -383,11 +383,6 @@ def update_graph(checklist, year):
         type = 'total_score'
     else:
         type = None
-
-    print('Checklist: ', checklist)
-    print('*************')
-    print('***', type, '***')
-    print('*************')
 
     df_Active = kchb.position_tracking(type=type)
 
@@ -434,9 +429,11 @@ def update_graph(checklist, year):
             line=dict(color=colors[i], width=5),
             marker=dict(size=8),
             text=[team] * len(team_data),
-            customdata=team_data['rank'].astype('str'),
+            customdata=np.stack((team_data['rank'].astype('str'), team_data['cumulative_metric'].round(2).astype('str')),
+                                axis=-1),
             hovertemplate='<b>%{text}</b><br>'
-                          '%{x} - %{customdata} место' +
+                          '%{x} - %{customdata[0]} место <br><br>' +
+                          '<b>%{customdata[1]}</b> баллов' +
                           '<extra></extra>',
         ))
 
@@ -451,9 +448,10 @@ def update_graph(checklist, year):
             line=dict(color='#757575', width=5),
             marker=dict(size=8),
             text=[team] * len(team_data),
-            customdata=team_data['rank'].astype('str'),
+            customdata=np.stack((team_data['rank'].astype('str'), team_data['cumulative_metric'].round(2).astype('str')), axis=-1),
             hovertemplate='<b>%{text}</b><br>'
-                         '%{x} - %{customdata} место' +
+                          '%{x} - %{customdata[0]} место <br><br>' +
+                          '<b>%{customdata[1]}</b> баллов' +
                           '<extra></extra>',
         ))
 
@@ -569,8 +567,8 @@ def update_Tornado(team1, team2, year):
     return fig
 
 @app.callback(
-    Output('heatmaps-checklist', 'value'),
-    Input('heatmaps-checklist', 'value'),
+    Output('ranking_track-checklist', 'value'),
+    Input('ranking_track-checklist', 'value'),
 )
 def enforce_win_selection(selected_values):
     if 'win' not in selected_values:
@@ -593,7 +591,7 @@ app.layout = html.Div([
                 html.P('Турнирная статистика за года', className='title'),
                 html.Div([
                     dcc.Dropdown(
-                        id="YearSelector",
+                        id="YearSelector-mobile",
                         options=[
                              {'label': '2024', 'value': 2024},
                              {'label': '2023', 'value': 2023},
@@ -606,7 +604,7 @@ app.layout = html.Div([
                         className="",
                         # labelCheckedClassName="date-group-labels-checked",
                         # inline=True,
-                        value=2023,
+                        value=2024,
                         style={'width': '200px'}
                         # style={'margin': '0 20px 20px 0'}
                     ),
@@ -709,7 +707,7 @@ app.layout = html.Div([
                                         labelClassName="date-group-labels",
                                         labelCheckedClassName="date-group-labels-checked",
                                         inline=True,
-                                        value=2023,
+                                        value=2024,
                                         # style={'margin': '0 20px 20px 0'}
                                     ),
                             ], style={'display': 'flex', 'flex-wrap':'wrap'}),
@@ -719,18 +717,48 @@ app.layout = html.Div([
                     html.Div(
                         [
                             html.Div("Количество игроков", className='title'),
-                            html.Div(id='total_teams', className='indicator'),
+                            dcc.Loading(
+                                [
+                                    html.Div(id='total_teams', className='indicator'),
+                                ],
+                                type="circle",
+                                style={
+                                    "position": "relative",
+                                    "backgroundColor": "none",
+                                },
+                            ),
+
                         ], style={}, className='square'),
 
                     html.Div(
                         [
                             html.Div("Сыграно игр", className='title', style={'margin-bottom':'25px'}),
-                            html.Div(id='total_games', className='indicator'),
+                            dcc.Loading(
+                                    [
+                                        html.Div(id='total_games', className='indicator'),
+                                    ],
+                                    type="circle",
+                                    style={
+                                        "position": "relative",
+                                        "backgroundColor": "none",
+                                    },
+                                ),
+
                         ],  style={}, className='square'),
                     html.Div(
                         [
                             html.Div("Всего фолов", className='title', style={'margin-bottom': '25px'}),
-                            html.Div('644', className='indicator'),
+                            dcc.Loading(
+                                [
+                                    html.Div('644', className='indicator'),
+                                ],
+                                type="circle",
+                                style={
+                                    "position": "relative",
+                                    "backgroundColor": "none",
+                                },
+                            ),
+
                         ], style={}, className='square'),
                     html.Div(
                         [
@@ -738,12 +766,14 @@ app.layout = html.Div([
                             html.Div([
                                 dcc.Loading(
                                     [dcc.Graph(id="win_lose",
+                                                config={'displayModeBar': False},
                                               )],
                                     type="circle",
                                     style={
                                         "position": "relative",
                                         "backgroundColor": "none",
                                     },
+
                                 ),
                             ]),
                         ], style={
@@ -751,8 +781,27 @@ app.layout = html.Div([
                                     # "width": "100%",  # Подгоняем ширину контейнера
                                     # "height": "500px",  # Укажите фиксированную высоту для блока графика
                                 }, className='square'),
-                    html.Div(id='best_score'),
-                    html.Div(id='most_killed')
+                    dcc.Loading(
+                        [
+                            html.Div(id='best_score'),
+                        ],
+                        type="circle",
+                        style={
+                            "position": "relative",
+                            "backgroundColor": "none",
+                        },
+                    ),
+                    dcc.Loading(
+                        [
+                            html.Div(id='most_killed')
+                        ],
+                        type="circle",
+                        style={
+                            "position": "relative",
+                            "backgroundColor": "none",
+                        },
+                    ),
+
             ], style={'margin-bottom': '20px'},className='square__block'),
         ], className='year__selector-desktop'),
 
@@ -763,7 +812,7 @@ app.layout = html.Div([
                    style={'color': '#757575', 'font-size': '12px',  'margin-bottom': '0',}),
             html.Div([
                     dcc.Checklist(
-                        id='heatmaps-checklist',
+                        id='ranking_track-checklist',
                         options=[
                             {'label': html.Div([html.Span('only' ), html.Span(' WIN')], className='checklist_label' ), 'value': 'win'},
                             {'label': html.Div([html.Span('with' ), html.Span(' ДБ')], className='checklist_label' ), 'value': 'dops'},
@@ -772,11 +821,11 @@ app.layout = html.Div([
                         ],
                         value=['Ci', 'dops', 'firstshot', 'win' ],
                         inline=True,
-                        style={'color': 'white', 'text-align':'right'},
+                        style={'color': 'white', 'text-align':'left'},
                         className='checklist',
                     )
-            ], style={'width':'100%',  'margin-bottom': '20px'}),
-            dcc.Graph(id='heatmap',
+            ], style={'width':'100%',  'margin-top': '20px'}),
+            dcc.Graph(id='ranking_track',
                       config={'displayModeBar': False},
                       style={'max-width': '100%', 'width': '100%'}),
         ], className='vrectangle heatmap__block'),
