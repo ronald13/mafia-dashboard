@@ -56,8 +56,6 @@ def get_data(year, games_number=GAME_NUMBER):
     logger.info("Data has been loaded")
     return games, teams, firstshot, referee
 
-
-
 kchb_by_years = {2024: Mafia(*get_data(2024, GAME_NUMBER)),
                  2023: Mafia(*get_data(2023, GAME_NUMBER)), 2022: Mafia(*get_data(2022, GAME_NUMBER)),
                  2021: Mafia(*get_data(2021, GAME_NUMBER)), 2020: Mafia(*get_data(2020, GAME_NUMBER)),
@@ -386,6 +384,8 @@ def update_graph(checklist, year):
 
     df_Active = kchb.position_tracking(type=type)
 
+
+
     def generate_colors(num_teams):
         """
         Генерирует цветовую палитру с яркими цветами для топ-3 и пастельными для остальных
@@ -429,13 +429,49 @@ def update_graph(checklist, year):
             line=dict(color=colors[i], width=5),
             marker=dict(size=8),
             text=[team] * len(team_data),
-            customdata=np.stack((team_data['rank'].astype('str'), team_data['cumulative_metric'].round(2).astype('str')),
-                                axis=-1),
+            customdata=np.stack(
+                (team_data['rank'].astype('str'), team_data['cumulative_metric'].round(2).astype('str')),
+                axis=-1),
             hovertemplate='<b>%{text}</b><br>'
                           '%{x} - %{customdata[0]} место <br><br>' +
                           '<b>%{customdata[1]}</b> баллов' +
                           '<extra></extra>',
         ))
+
+        # Добавляем невидимые точки для оси Y
+        # Предполагаем, что у нас есть массив с информацией для каждого места
+        y_hover_info = {
+            1: "1 место - Чемпион турнира",
+            2: "2 место - Серебряный призер",
+            3: "3 место - Бронзовый призер",
+            4: "4 место - Участник полуфинала",
+            # ... добавьте информацию для остальных мест
+        }
+
+        # Получаем уникальные значения рангов для оси Y
+        unique_ranks = sorted(team_data['rank'].unique())
+
+        # Находим минимальное и максимальное значения по оси X
+        min_x = 1
+        hover_x = 0.8
+
+        # Добавляем невидимые точки для hover эффекта на оси Y
+        # fig.add_trace(go.Scatter(
+        #     x=[hover_x] * len(unique_ranks),  # Точки слева от графика
+        #     y=unique_ranks,
+        #     mode='markers',
+        #     marker=dict(
+        #         size=5,  # Размер области hover
+        #         opacity=1,
+        #         color='white'
+        #     ),
+        #     hovertemplate='%{customdata}<extra></extra>',
+        #     customdata=[y_hover_info.get(rank, f"{rank} место") for rank in unique_ranks],
+        #     showlegend=False,
+        #     hoverinfo='text'
+        # ))
+
+
 
     for i, team in enumerate(team_order[3:]):
         team_data = df_Active[df_Active['team_name'] == team]
@@ -474,7 +510,7 @@ def update_graph(checklist, year):
             # tickfont=dict(color='red')
         ),
         xaxis=dict(
-            range=[0.8, 15],
+            range=[0.7, 15],
             tickmode = 'array',
             tickvals = list(range(1, 15)),
             ticktext = rounds,
@@ -804,6 +840,7 @@ app.layout = html.Div([
 
             ], style={'margin-bottom': '20px'},className='square__block'),
         ], className='year__selector-desktop'),
+
 
 
         html.Div([

@@ -27,11 +27,11 @@ def df_firstshot_with_hit_rate(row, all_games_number):
     The value B = 0.4 * number of all games in the tournament and rounded to the nearest integer.
     """
 
-    B = round(0.4 * all_games_number)
+    B = round(0.4 * all_games_number) # 6
     if row['number_shot'] <= B:
-        return round((row['number_shot'] * 0.4 / B), 4)
+        return round((row['shot_and_lose'] * 0.3 / B), 4)
     else:
-        return 0.4
+        return 0.3
 
 
 class Mafia(object):
@@ -141,10 +141,12 @@ class Mafia(object):
 
         # points for a kill on the first night (Ci) in the current round
         firstshot_df['Ci_by_round'] = firstshot_df.apply(df_firstshot_with_hit_rate, axis=1, args=(14,))
-        firstshot_df['Ci_by_round'] = round(firstshot_df['Ci_by_round'] * firstshot_df['who_win'],2)
+        firstshot_df['Ci_by_round'] = round(firstshot_df['Ci_by_round'] * firstshot_df['who_win'],4)
 
-        firstshot_df['Ci_total'] = round(firstshot_df['Ci_by_round'] * firstshot_df['shot_and_lose'], 2)  # total points for a kill on the first night (Ci)
+        firstshot_df['Ci_total'] = round(firstshot_df['Ci_by_round'] * firstshot_df['shot_and_lose'], 4)  # total points for a kill on the first night (Ci)
         firstshot_df['merge_id'] = firstshot_df['round_number'].astype('str') + firstshot_df['team_name']
+
+        print(firstshot_df[firstshot_df['player_name'] == 'Артик'])
 
         if type == 'total':
             return firstshot_df.groupby(['player_name', 'team_name']).agg(
@@ -251,6 +253,16 @@ class Mafia(object):
         )
         full_df.fillna(0, inplace=True)
 
+
+        print(full_df.groupby('team_name').agg(only_win=('only_win', 'sum'),
+                                               total_score=('total_score', 'sum'),
+                                               # dop_plus=('score_dop', 'sum'),
+                                               # dop_minus=('score_minus', 'sum'),
+                                               score_firstshot=('score_firstshot', 'sum'),
+                                               Ci=('Ci_by_round', 'sum')
+
+                                               ).sort_values(by='total_score', ascending=False))
+
         if type == 'win':
             full_df['cumulative_metric'] = full_df.groupby('team_name')['only_win'].cumsum()
         elif type == 'dops':
@@ -281,7 +293,7 @@ class Mafia(object):
             lambda group: group.sort_values(by='cumulative_metric', ascending=False).assign(rank=range(1, len(group) + 1)))[
             'rank']
         print('=====After Cumulative Metrics=====')
-        print(full_df[full_df['round_number'] == 14])
+        # print(full_df[full_df['round_number'] == 14])
         return full_df[['rank', 'team_name', 'cumulative_metric', 'round_number']]
 
     def referee_score(self):
