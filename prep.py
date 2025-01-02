@@ -77,21 +77,21 @@ def simple_bar(df, inputheight=200):
     fig.update_yaxes(titlefont_size=15, color='black', showgrid=False, ticklabelposition='inside')
 
     return fig
-def stacked_bar(df, inputheight):
+def stacked_bar(x_left, x_right, y,  inputheight, chart='DB'):
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=df['score_minus'],
-                         y=df['referee_name'],
+    fig.add_trace(go.Bar(x=x_left,
+                         y=y,
                          orientation='h',
-                         name='Минуса',
-                         customdata=df['score_minus'],
+                         name='Мирные',
+                         customdata=x_left,
                          # hovertemplate = "<b>%{y}</b><br>Score:%{customdata}<extra></extra>",
                          marker_color='#DD4A48',
                          # textfont=dict(color='black')
                          ))
-    fig.add_trace(go.Bar(x= df['score_dop'],
-                         y =df['referee_name'],
+    fig.add_trace(go.Bar(x=x_right ,
+                         y =y,
                          orientation='h',
-                         name='Доп баллы',
+                         name='Мафия',
                          # hovertemplate="<b>%{y}</b><br>Score:%{x}<extra></extra>",
                          marker_color='#C0D8C0',
                          # textfont=dict(color='black')
@@ -100,17 +100,36 @@ def stacked_bar(df, inputheight):
 
     fig.update_layout(barmode='relative',
                       height=inputheight,
-                      margin={'t': 20, 'r': 0, 'l': 0, 'b': 20},
+                      margin={'t': 30, 'r': 0, 'l': 0, 'b': 20, 'pad':10},
                       template='plotly_white',
                       yaxis_autorange='reversed',
                       bargap=0.2,
                       legend_orientation ='h',
-                      legend_x=0, legend_y=1.2,
-                      showlegend=False
+                      legend_x=0.1, legend_y=0,
+                      showlegend=False,
+                      font=dict(
+                          color="#fff"
+                      ),
+                      # legend=dict( xanchor="right",),
+                        yaxis = dict(color="#fff")
                       )
-    fig.update_xaxes(title='<b>Баллы</b>', showgrid=False, showticklabels=False, zeroline=False, color='#fff')
-    fig.update_traces( hoverlabel_bgcolor='#ffffff',  hovertemplate='<b>%{y}</b><br>' + '%{x:.1f}' +' балл' + '<extra></extra>', textfont=dict(color='#313844'), texttemplate='<b>%{x:.1f}' +' балл </b>', marker=dict(line=dict(width=0)))
-    fig.update_yaxes(titlefont_size=15, color='#fff', showgrid=False, ticklabelposition='inside')
+
+    if chart == 'DB':
+
+        fig.update_xaxes(title='<b>ДБ</b>', showgrid=False, showticklabels=False, zeroline=False, color='#fff')
+        fig.update_traces( hoverlabel_bgcolor='#ffffff',  hovertemplate='<b>%{y}</b><br>' + '%{x:.1f}' +' балл' + '<extra></extra>',
+                           textfont=dict(color='#313844'),
+                           texttemplate='<b>%{x:.1f}</b>', marker=dict(line=dict(width=0)))
+        fig.update_yaxes(titlefont_size=15, color="red", showgrid=False, ticklabelposition='inside')
+    elif chart == 'win/lose' :
+        fig.update_layout(showlegend=True)
+        fig.update_xaxes(title='<b>Победы</b>', showgrid=False, showticklabels=False, zeroline=False, color='#fff')
+        fig.update_traces(hoverlabel_bgcolor='#ffffff',
+                          hovertemplate='<b>%{y}</b><br>' + '%{x:.0f}' + '<extra></extra>',
+                          textfont=dict(color='#313844'),
+                          texttemplate='<b>%{x:.0f}</b>',
+                          textangle=0, marker=dict(line=dict(width=0)))
+
     return fig
 def simple_pie(colors= ['red', 'black'], title='WIN', values=[40, 60]):
     fig = go.Figure()

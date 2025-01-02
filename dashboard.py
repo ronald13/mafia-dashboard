@@ -208,22 +208,18 @@ def update_graph(year):
     best_score = kchb.full_best_score()
     best_score_layout = html.Div(
         [
-            html.Div("Лучший ход", className='title', style={'margin-bottom': '25px'}),
             html.Div(
                 [
                    html.Div(best_score[counter], className='indicator', style = {'font-size': '19px', 'margin-bottom': '10px'})
                     for counter in range(0, len(best_score))
                 ], style={'text-align':'center'}),
-            html.Div('тройка черных', style={'color': '#757575', 'font-size': '12px', 'margin-bottom': '0', }),
-        ], style={},
-           className='square'),
+        ], className=''),
 
     most_killed_layout = html.Div(
         [
-            html.Div("Смертник", className='title', style={'margin-bottom': '25px'}),
             html.Div(most_killed[0], className='indicator', style={'font-size': '26px', 'margin-bottom': '10px'}),
-            html.Div(most_killed[1], style={'color': '#757575', 'font-size': '12px', 'margin-bottom': '0', }),
-        ], style={'margin-right': '20px', }, className='square'),
+            html.Div(most_killed[1], style={'color': '#757575', 'font-size': '14px', 'margin-bottom': '0', 'text-align': 'center' }),
+        ], style={}, className=''),
 
 
     return (total_teams, total_games, win_lose_figure, best_score_layout,  most_killed_layout,
@@ -241,31 +237,42 @@ def update_graph(year, type_chart):
     if not kchb:
         return
     referee_score = kchb.referee_score()
-    if 'show_score' not in type_chart:
-        if year in [2023, 2022, 2020]:
-            referee_voting = pd.read_csv(f"data/{year}/" + 'referee_voting.csv')
-            layout = dcc.Graph(figure = simple_bar(referee_voting, inputheight=200),  config={'displayModeBar': False}, style={'margin-bottom':'20px'}),
-        else:
-            layout = html.P("Голосование не проводилось", style={'height':'200px', 'font-size':'20px', 'color':'#fff', 'display':'flex', 'align-items':'center', 'justify-content':'center' })
-    else:
-        layout = dcc.Graph(figure=stacked_bar(referee_score, inputheight=200), config={'displayModeBar': False},
-                           style={'margin-bottom': '20px'}),
+
 
         # fig = stacked_bar(referee_score, inputheight=200)
 
+    if year in [2023, 2022, 2020]:
+        referee_voting = pd.read_csv(f"data/{year}/" + 'referee_voting.csv')
+        layout = dcc.Graph(figure=simple_bar(referee_voting, inputheight=200), config={'displayModeBar': False},
+                           style={'margin-bottom': '20px'}),
+    else:
+        layout = html.P("Голосование не проводилось",
+                        style={'height': '200px', 'font-size': '20px', 'color': '#fff', 'display': 'flex',
+                               'align-items': 'center', 'justify-content': 'center'})
+
     referee_results = kchb.game_results()
+    referee_results = referee_results.merge(kchb.referee, how='left', on='table_number')
     referee_pie_layout = html.Div(
                                 [
-                                    dcc.Graph(figure=simple_pie(colors=['#E0DDAA', '#A27B5C'],
-                                                                title=referee_score['referee_name'].values[count],
-                                                                values=[el * 100 for el in referee_results['value'].values[count]]),
-                                              config={'displayModeBar': False},
-                                              style={'font-family': 'Roboto', 'margin-bottom': '20px'})
-                                    for count in range(0, len(referee_results))
+                                    dcc.Graph(figure=stacked_bar(referee_results['citizen_win (number)'],
+                                                                 referee_results['mafia_win (number)'],
+                                                                 referee_results['referee_name'],
+                                                                 inputheight=200,
+                                                                 chart='win/lose'
+                                                                 ), config={'displayModeBar': False},
+                                              style={'margin-bottom': '20px', 'width': 350}),
 
                                 ], style={'display': 'flex', 'width': '100%',
                                           'justify-content': 'space-between',
                                           'flex-wrap': 'wrap'}),
+
+    if 'show_score' not in type_chart:
+        referee_pie_layout
+    else:
+        referee_pie_layout = dcc.Graph(figure=stacked_bar(referee_score['score_minus'], referee_score['score_dop'], referee_score['referee_name'],  inputheight=200), config={'displayModeBar': False},
+                           style={'margin-bottom': '20px', 'width': 350}),
+
+
 
     return layout, referee_pie_layout
 
@@ -385,7 +392,6 @@ def update_graph(checklist, year):
     df_Active = kchb.position_tracking(type=type)
 
 
-
     def generate_colors(num_teams):
         """
         Генерирует цветовую палитру с яркими цветами для топ-3 и пастельными для остальных
@@ -484,7 +490,11 @@ def update_graph(checklist, year):
             line=dict(color='#757575', width=5),
             marker=dict(size=8),
             text=[team] * len(team_data),
-            customdata=np.stack((team_data['rank'].astype('str'), team_data['cumulative_metric'].round(2).astype('str')), axis=-1),
+            # custom data for hovertemplate with full scores
+            customdata=np.stack(
+                (team_data['rank'].astype('str'),
+                 team_data['cumulative_metric'].round(2).astype('str')), axis=-1
+            ),
             hovertemplate='<b>%{text}</b><br>'
                           '%{x} - %{customdata[0]} место <br><br>' +
                           '<b>%{customdata[1]}</b> баллов' +
@@ -671,6 +681,16 @@ app.layout = html.Div([
                             dcc.Graph(id='win_lose-mobile', config={'displayModeBar': False}, style={}),
                         ]),
                     ], style={}, className='square'),
+
+                html.Div(
+                        [
+                            html.Div("Лучший ход", className='title', style={'margin-bottom': '25px'}),
+                            html.Div(id='best_score-mobile'),
+                            html.Div('тройка черных', style={'color': '#757575', 'font-size': '12px', 'margin-bottom': '0', }),
+                        ], style={},
+                           className='square'),
+
+
                 html.Div(id='best_score-mobile'),
                 html.Div(id='most_killed-mobile')
             ], style={'margin-bottom': '20px'}, className='square__block'),
@@ -693,23 +713,34 @@ app.layout = html.Div([
 
         ], className='vrectangle'),
 
+
         html.Div([
-            html.Div("Лучший судья турнира", className='title'),
-            html.P('Голосование только среди участников турнира',
+            html.Div("Cудейская аналитика", className='title'),
+            html.P('Статистика красных/черных',
                    style={'color': '#757575', 'font-size': '12px',  'margin-bottom': '0'}),
             dcc.Checklist(
                 id='TypeRefereeChart',
                 options=[
-                    {'label': 'Показать баллы', 'value': 'show_score'},
+                    {'label': 'ДБ', 'value': 'show_score'},
                 ],
                 value=[''],
-                labelStyle={'display': 'inline-block'} ,
-                style={'position': 'absolute', 'top':'22px', 'right':'10px', 'color':'#fff', 'font-size':'10px'}
+                labelStyle={'display': 'flex', 'align-items': 'center'} ,
+                style={'position': 'absolute', 'top':'22px', 'right':'35px', 'color':'#fff', 'font-size':'10px'}
             ),
-            html.Div(id='best-referee_layout', style={'max-width':'100%', 'width':'100%'}),
             html.Div(id ='referee-statistic')],
             className='vrectangle relative'
         ),
+        html.Div([
+            html.Div("Лучший судья турнира", className='title'),
+            html.P('Голосование только среди участников турнира',
+                   style={'color': '#757575', 'font-size': '12px',  'margin-bottom': '0'}),
+
+            html.Div(id='best-referee_layout', style={'max-width':'100%', 'width':'100%'}),
+            ],
+            className='vrectangle relative'
+        ),
+
+
 
         #     html.Div([
         #             html.Div("Смета турнира", className='title'),
@@ -799,11 +830,11 @@ app.layout = html.Div([
                     html.Div(
                         [
                             html.Div("Победы", className='title'),
-                            html.Div([
-                                dcc.Loading(
-                                    [dcc.Graph(id="win_lose",
+                            dcc.Loading(
+                                    [
+                                        dcc.Graph(id="win_lose",
                                                 config={'displayModeBar': False},
-                                              )],
+                                       )],
                                     type="circle",
                                     style={
                                         "position": "relative",
@@ -811,32 +842,41 @@ app.layout = html.Div([
                                     },
 
                                 ),
-                            ]),
-                        ], style={
-                                    "position": "relative",  # Контейнер для относительного позиционирования
-                                    # "width": "100%",  # Подгоняем ширину контейнера
-                                    # "height": "500px",  # Укажите фиксированную высоту для блока графика
-                                }, className='square'),
-                    dcc.Loading(
-                        [
-                            html.Div(id='best_score'),
-                        ],
-                        type="circle",
-                        style={
-                            "position": "relative",
-                            "backgroundColor": "none",
-                        },
+
+                        ], style={ }, className='square'
                     ),
-                    dcc.Loading(
+                    html.Div(
                         [
-                            html.Div(id='most_killed')
-                        ],
-                        type="circle",
-                        style={
-                            "position": "relative",
-                            "backgroundColor": "none",
-                        },
-                    ),
+                            html.Div("Полный ЛХ", className='title', style={'margin-bottom': '25px'}),
+                            dcc.Loading(
+                                [
+                                    html.Div(id='best_score'),
+                                ],
+                                type="circle",
+                                style={
+                                    "position": "relative",
+                                    "backgroundColor": "none",
+                                },
+                             ),
+
+                        ], style={}, className='square'),
+
+                    html.Div(
+                        [
+                            html.Div("Смертник", className='title', style={'margin-bottom': '25px'}),
+                            dcc.Loading(
+                                [
+                                    html.Div(id='most_killed'),
+                                ],
+                                type="circle",
+                                style={
+                                    "position": "relative",
+                                    "backgroundColor": "none",
+                                },
+                             ),
+
+                        ], style={},  className='square'),
+
 
             ], style={'margin-bottom': '20px'},className='square__block'),
         ], className='year__selector-desktop'),

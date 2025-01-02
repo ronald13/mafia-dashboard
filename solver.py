@@ -146,7 +146,7 @@ class Mafia(object):
         firstshot_df['Ci_total'] = round(firstshot_df['Ci_by_round'] * firstshot_df['shot_and_lose'], 4)  # total points for a kill on the first night (Ci)
         firstshot_df['merge_id'] = firstshot_df['round_number'].astype('str') + firstshot_df['team_name']
 
-        print(firstshot_df[firstshot_df['player_name'] == 'Артик'])
+        # print(firstshot_df[firstshot_df['player_name'] == 'Yesterday'])
 
         if type == 'total':
             return firstshot_df.groupby(['player_name', 'team_name']).agg(
@@ -254,14 +254,14 @@ class Mafia(object):
         full_df.fillna(0, inplace=True)
 
 
-        print(full_df.groupby('team_name').agg(only_win=('only_win', 'sum'),
-                                               total_score=('total_score', 'sum'),
-                                               # dop_plus=('score_dop', 'sum'),
-                                               # dop_minus=('score_minus', 'sum'),
-                                               score_firstshot=('score_firstshot', 'sum'),
-                                               Ci=('Ci_by_round', 'sum')
-
-                                               ).sort_values(by='total_score', ascending=False))
+        # print(full_df.groupby('team_name').agg(only_win=('only_win', 'sum'),
+        #                                        total_score=('total_score', 'sum'),
+        #                                        # dop_plus=('score_dop', 'sum'),
+        #                                        # dop_minus=('score_minus', 'sum'),
+        #                                        score_firstshot=('score_firstshot', 'sum'),
+        #                                        Ci=('Ci_by_round', 'sum')
+        #
+        #                                        ).sort_values(by='total_score', ascending=False))
 
         if type == 'win':
             full_df['cumulative_metric'] = full_df.groupby('team_name')['only_win'].cumsum()
@@ -293,8 +293,8 @@ class Mafia(object):
             lambda group: group.sort_values(by='cumulative_metric', ascending=False).assign(rank=range(1, len(group) + 1)))[
             'rank']
         print('=====After Cumulative Metrics=====')
-        # print(full_df[full_df['round_number'] == 14])
-        return full_df[['rank', 'team_name', 'cumulative_metric', 'round_number']]
+        print(full_df[full_df['round_number'] == 14])
+        return full_df
 
     def referee_score(self):
         """
@@ -312,7 +312,7 @@ class Mafia(object):
         win_lose = self.get_info_about_all_games()['winner'].value_counts(normalize=True).round(2).reset_index()['proportion'].to_list()
         return win_lose
 
-    def game_results(self, normalize=True):
+    def game_results(self):
         """
 
         :param normalize:
@@ -320,9 +320,28 @@ class Mafia(object):
         """
         df = self.games[['game_id', 'table', 'winner_id', 'WinnerName']].rename(
             columns={'table': 'table_number', 'WinnerName': 'winner'})
-        df = df.groupby('table_number')['winner'].value_counts(normalize=normalize).round(2).reset_index(name="value")
-        df = df.groupby('table_number')['value'].apply(list).reset_index()
-        return df
+        df = df.groupby('table_number')['winner'].value_counts(normalize=False).round(2).reset_index(name="value")
+
+        df_pivot = df.pivot(index="table_number", columns="winner", values="value").reset_index()
+
+        df_pivot.columns.name = None
+        df_pivot.rename(columns={
+            "Победа мафии": "mafia_win (number)",
+            "Победа мирных": "citizen_win (number)"
+        }, inplace=True)
+
+        df_pivot["mafia_win (number)"] = ( df_pivot["mafia_win (number)"] / 10).astype(int)
+        df_pivot["citizen_win (number)"] = (df_pivot["citizen_win (number)"] / 10).astype(int)
+
+        # Вычисление процентных значений с округлением
+        df_pivot["mafia_win (%)"] = (df_pivot["mafia_win (number)"] /
+                                        (df_pivot["mafia_win (number)"] + df_pivot[
+                                            "citizen_win (number)"]) * 100).round(0)
+        df_pivot["citizen_win (%)"] = (df_pivot["citizen_win (number)"] /
+                                         (df_pivot["mafia_win (number)"] + df_pivot[
+                                             "citizen_win (number)"]) * 100).round(0)
+
+        return df_pivot
     def death_leader(self):
         """
         most killed player: [nick, number]
