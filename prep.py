@@ -262,3 +262,40 @@ def create_box_bars(values, param='#dsdss'):
         showlegend=False,
     )
     return fig
+
+def create_heatmap(df):
+    """
+    Создает компактную тепловую карту средних оценок игрок-судья
+    """
+
+    means = df.pivot_table(values='score_dop', index='player_name', columns='referee_name', aggfunc='sum')
+    counts = df.pivot_table(values='score_dop', index='player_name', columns='referee_name', aggfunc='count').fillna(0)
+
+    fig = go.Figure(data=go.Heatmap(
+        z=means,
+        x=means.columns,
+        y=means.index,
+        colorscale='Greys',
+        text=means.round(2).astype(str) + '<br>(' + counts.astype(int).astype(str) + ' игр-а)',
+        texttemplate='%{text}',
+        xgap= 10,
+        ygap= 10,
+        textfont={"size": 10},
+        hovertemplate='%{y} - %{x}<br>Сумма ДБ: %{z:.2f}<extra></extra>',
+        showscale=False
+    ))
+
+    fig.update_layout(
+        title=None,
+        width=700,
+        # height=600,
+        xaxis={'side': 'top', 'showline': False},
+        yaxis={ 'showline': False},
+        margin=dict(l=10, r=10, t=20, b=10, pad=10)
+
+
+    )
+    fig.update_xaxes(showgrid=False, zeroline=False)
+    fig.update_yaxes(showgrid=False, zeroline=False)
+
+    return fig

@@ -414,7 +414,9 @@ button{
     display:none;
 }
 
-#referee-statistic .ytick text{
+#referee-statistic .ytick text,
+#player_referee_heatmap .ytick text,
+#player_referee_heatmap .xtick text{
     fill:#fff!Important;
 }
 
@@ -531,7 +533,7 @@ button{
     /*align-items: center;*/
     font-size: 14px;
     /*gap: 10px;*/
-    
+
 }
 
 .checklist label{

@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import plotly.figure_factory as ff
 from plotly.subplots import make_subplots
-from prep import create_tornado, simple_bar, stacked_bar, simple_pie, draw_pie, make_spider, text_fig, create_box_bars
+from prep import create_tornado, simple_bar, stacked_bar, simple_pie, draw_pie, make_spider, text_fig, create_box_bars, create_heatmap
 from styling import template, marker_color, marker_color_full, color_list
 from solver import Mafia, merge_two_dicts
 from loguru import logger
@@ -81,8 +81,8 @@ server = app.server
      Output('round_win_referee_dropdown', 'options'),
      Output('table_setting_team_dropdown', 'options'),
      Output('tornado_team_dropdown_1', 'options'),
-     Output('tornado_team_dropdown_2', 'options')],
-     # Output('heatmap_team_dropdown', 'options')],
+     Output('tornado_team_dropdown_2', 'options'),
+     Output('heatmap_team_dropdown', 'options')],
      Input('YearSelector', 'value')
 )
 def update_dropdown_options(year):
@@ -91,7 +91,7 @@ def update_dropdown_options(year):
     #     return
     teams_list = kchb.teams_list()
     teams_list_options = [{'label': i, 'value': i} for i in teams_list]
-    return teams_list_options, teams_list_options, teams_list_options, teams_list_options
+    return teams_list_options, teams_list_options, teams_list_options, teams_list_options, teams_list_options
 
 @app.callback(
     [
@@ -100,7 +100,7 @@ def update_dropdown_options(year):
      Output('table_setting_team_dropdown', 'value'),
      Output('tornado_team_dropdown_1', 'value'),
      Output('tornado_team_dropdown_2', 'value'),
-     # Output('heatmap_team_dropdown', 'value')
+     Output('heatmap_team_dropdown', 'value')
      ],
     [
         # Input('round_win_multi_dropdown', 'options'),
@@ -108,7 +108,7 @@ def update_dropdown_options(year):
      Input('table_setting_team_dropdown', 'options'),
      Input('tornado_team_dropdown_1', 'options'),
      Input('tornado_team_dropdown_2', 'options'),
-     # Input('heatmap_team_dropdown', 'options')
+     Input('heatmap_team_dropdown', 'options')
      ],
 )
 def update_dropdown_values(
@@ -116,13 +116,13 @@ def update_dropdown_values(
                            table_setting_team_dropdown,
                            tornado_team_dropdown_1,
                            tornado_team_dropdown_2,
-                           # heatmap_team_dropdown
+                           heatmap_team_dropdown
                            ):
 
     teams_list_value = [k['value'] for k in round_win_referee_dropdown][0]
     teams_list_value_2 = [k['value'] for k in round_win_referee_dropdown][1]
     multi_team_list = [k['value'] for k in round_win_referee_dropdown][0:3]
-    return (teams_list_value, teams_list_value, teams_list_value, teams_list_value_2
+    return (teams_list_value, teams_list_value, teams_list_value, teams_list_value_2, teams_list_value
             )
 
 # TEAM STATISTIC
@@ -319,46 +319,46 @@ def update_graph(team, year):
     return spider_layout
 
 
-# @app.callback(
-#     Output('total_win', 'figure'),
-#     [Input('round_win_multi_dropdown', 'value'),
-#      Input('YearSelector', 'value')]
-# )
-# def update_graph(team_list, year):
-#     kchb = kchb_by_years.get(year)
-#     if not kchb:
-#         return
-#     rounds = ['Тур ' + str(x) for x in range(1, GAME_NUMBER + 1)]
-#     df_Active = kchb.win_by_round()
-#     df_Active = df_Active[df_Active['team_name'].isin(team_list)].sort_values(by=[df_Active.columns[-1]], ascending=True).reset_index(drop=True)
-#
-#     fig = go.Figure()
-#     for i in range(0, len(df_Active)):
-#         fig.add_trace(go.Scatter(
-#             x=rounds,
-#             y=df_Active.loc[i, :].to_list()[1:],
-#             # fill='tozeroy',
-#             hovertemplate=df_Active['team_name'][i] +'<br>'+
-#             '%{x}' + '<br>'+
-#             '<b>Итого побед: </b>'+ '%{y}' +
-#             '<extra></extra>',
-#             name=df_Active['team_name'][i],))
-#     fig.update_layout(
-#         autosize=True,
-#         margin=dict(l=0, r=10, t=20, pad=10),
-#         template=template,
-#         legend=dict(
-#             x=0,
-#             y=1.1,
-#             orientation="h")
-#     )
-#     fig.update_traces(
-#         # marker_color=['#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#34495e', '#f1c40f', '#e67e22', '#e74c3c', '#ecf0f1', '#7f8c8d'],
-#         # marker_color=marker_color_full,
-#     )
-#     fig.update_xaxes(title='<b>Номер тура</b>')
-#     fig.update_yaxes(title='<b>Победы</b>')
-#     return fig
+@app.callback(
+    Output('player_referee_heatmap', 'figure'),
+    Input('heatmap_team_dropdown', 'value'),
+    Input('YearSelector', 'value')
+)
+def update_graph(team, year):
+    kchb = kchb_by_years.get(year)
+    if not kchb:
+        return
+
+    print(team)
+
+    df = kchb.get_info_about_all_games().copy()
+
+    # filter data with team_name
+    df = df[df['team_name'] == team]
+
+    df = df.groupby(['player_name', 'table_number'])['score_dop'].sum().reset_index()
+    df = df.merge(kchb.referee, how='left', on='table_number')
+
+    print(df)
+
+    heatmap_data = df.pivot_table(
+        values='score_dop',
+        index='player_name',
+        columns='referee_name',
+        aggfunc='sum'
+    )
+    games_count = df.pivot_table(
+        values='score_dop',
+        index='player_name',
+        columns='referee_name',
+        aggfunc='count'
+    ).fillna(0)
+
+
+    fig = create_heatmap(df)
+
+    return fig
+
 
 @app.callback(
     Output('ranking_track', 'figure'),
@@ -443,40 +443,6 @@ def update_graph(checklist, year):
                           '<b>%{customdata[1]}</b> баллов' +
                           '<extra></extra>',
         ))
-
-        # Добавляем невидимые точки для оси Y
-        # Предполагаем, что у нас есть массив с информацией для каждого места
-        y_hover_info = {
-            1: "1 место - Чемпион турнира",
-            2: "2 место - Серебряный призер",
-            3: "3 место - Бронзовый призер",
-            4: "4 место - Участник полуфинала",
-            # ... добавьте информацию для остальных мест
-        }
-
-        # Получаем уникальные значения рангов для оси Y
-        unique_ranks = sorted(team_data['rank'].unique())
-
-        # Находим минимальное и максимальное значения по оси X
-        min_x = 1
-        hover_x = 0.8
-
-        # Добавляем невидимые точки для hover эффекта на оси Y
-        # fig.add_trace(go.Scatter(
-        #     x=[hover_x] * len(unique_ranks),  # Точки слева от графика
-        #     y=unique_ranks,
-        #     mode='markers',
-        #     marker=dict(
-        #         size=5,  # Размер области hover
-        #         opacity=1,
-        #         color='white'
-        #     ),
-        #     hovertemplate='%{customdata}<extra></extra>',
-        #     customdata=[y_hover_info.get(rank, f"{rank} место") for rank in unique_ranks],
-        #     showlegend=False,
-        #     hoverinfo='text'
-        # ))
-
 
 
     for i, team in enumerate(team_order[3:]):
@@ -684,15 +650,18 @@ app.layout = html.Div([
 
                 html.Div(
                         [
-                            html.Div("Лучший ход", className='title', style={'margin-bottom': '25px'}),
+                            html.Div("Полный ЛХ", className='title', style={'margin-bottom': '25px'}),
                             html.Div(id='best_score-mobile'),
-                            html.Div('тройка черных', style={'color': '#757575', 'font-size': '12px', 'margin-bottom': '0', }),
                         ], style={},
                            className='square'),
 
+                html.Div(
+                    [
+                        html.Div("Смертник", className='title', style={'margin-bottom': '25px'}),
+                        html.Div(id='most_killed-mobile'),
+                    ], style={},
+                    className='square'),
 
-                html.Div(id='best_score-mobile'),
-                html.Div(id='most_killed-mobile')
             ], style={'margin-bottom': '20px'}, className='square__block'),
         ], className='year__selector-mobile'),
 
@@ -907,22 +876,6 @@ app.layout = html.Div([
                       style={'max-width': '100%', 'width': '100%'}),
         ], className='vrectangle heatmap__block'),
 
-
-        # html.Div([
-        #     html.P('Движение по играм', className='title'),
-        #     html.P('График помогает проследить как двигалась ваша команда по игровой дистанции и сравнивать этот результат с другими командами',
-        #            style={'color': '#757575', 'font-size': '12px',  'margin-bottom': '0',}),
-        #     html.Div([
-        #             dcc.Dropdown(
-        #                 id='round_win_multi_dropdown',
-        #                 options=[],
-        #                 multi=True,
-        #             )], style={'width':'100%',  'margin-bottom': '20px'}),
-        #     dcc.Graph(id='total_win',
-        #               config={'displayModeBar': False},
-        #               style={'max-width': '100%', 'width': '100%'}),
-        # ], className='vrectangle'),
-
         html.Div([
             html.P('Количество побед по турам', className='title'),
             html.P('Выбрав интересующую команду, вы можете изучить победы команды по турам в зависимости от судьи',
@@ -935,6 +888,7 @@ app.layout = html.Div([
                     ),
             dcc.Graph(id='round_win_referee', config={'displayModeBar': False}, style={'max-width': '100%', 'width': '100%'}),
         ], className='vrectangle'),
+
         #
         html.Div([
             html.P('Рассадка турнира', className='title'),
@@ -949,6 +903,7 @@ app.layout = html.Div([
             html.Div(id='spider_layout', style={'display':'flex', 'width':'100%', 'flex-wrap':'wrap'})
 
         ], className='vrectangle'),
+
         #
         html.Div([
             html.P('Сравнительная характеристика ', className='title'),
@@ -971,6 +926,25 @@ app.layout = html.Div([
             dcc.Graph(id='tornado_graph',  config={'displayModeBar': False}, style={'max-width': '100%', 'width': '100%'}),
 
         ], className='vrectangle'),
+
+        html.Div([
+            html.P('Анализ получения судейских ДБ ', className='title'),
+            html.P('Статистика показывает суммарные ДБ по каждому игроку и судье',
+                   style={'color': '#757575', 'font-size': '12px', 'margin-bottom': '20px'}),
+            dcc.Dropdown(
+                        id='heatmap_team_dropdown',
+                        options=[],
+                        placeholder='Выбери команду',
+                        style={'width': '250px', 'margin': '10px 0'},
+                    ),
+
+            dcc.Graph(id='player_referee_heatmap',  config={'displayModeBar': False}, style={'max-width': '100%', 'width': '100%'}),
+
+
+
+        ], className='vrectangle'),
+
+
         html.Div([
             html.Div([
                 html.Img(src='assets/img/logo_white.png', style={'width': '80px'}),
